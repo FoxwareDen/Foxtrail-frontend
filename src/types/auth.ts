@@ -5,6 +5,7 @@ export interface AuthContextType {
   session: Session | null
   loading: boolean
   signInWithGoogle: () => Promise<void>
+  signInWithLinkedIn: () => Promise<void>
   signOut: () => Promise<void>
 }
 

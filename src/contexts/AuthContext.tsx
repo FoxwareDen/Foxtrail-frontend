@@ -1,7 +1,19 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabaseClient'
-import { AuthContextType, AuthProviderProps } from '../types/auth'
+
+interface AuthContextType {
+  user: User | null
+  session: Session | null
+  loading: boolean
+  signInWithGoogle: () => Promise<void>
+  signInWithLinkedIn: () => Promise<void>
+  signOut: () => Promise<void>
+}
+
+interface AuthProviderProps {
+  children: React.ReactNode
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -53,6 +65,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
+  const signInWithLinkedIn = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      })
+      if (error) throw error
+    } catch (error) {
+      console.error('Error signing in with LinkedIn:', error)
+      throw error
+    }
+  }
+
   const signOut = async (): Promise<void> => {
     try {
       const { error } = await supabase.auth.signOut()
@@ -68,6 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     session,
     loading,
     signInWithGoogle,
+    signInWithLinkedIn,
     signOut
   }
 
