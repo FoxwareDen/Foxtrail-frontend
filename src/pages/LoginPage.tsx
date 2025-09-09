@@ -1,10 +1,35 @@
-import React from 'react';
+import React, {useState} from 'react';
 import logoTextImage from "../../public/FoxTrail.png";
 import logoImage from "../../public/logo.png";
+import { useAuth } from '../contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
+
 
 
 
 const LoginPage: React.FC = () => {
+  const { user, signInWithGoogle } = useAuth();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError ] = useState<string | null>(null);
+
+  //Redirect if user is already logged in
+  if(user){
+    return <Navigate to="/dashboard" replace/>
+  }
+
+  const handleGoogleSignIn = async (): Promise<void> => {
+    try{
+      setLoading(true)
+      setError(null)
+      await signInWithGoogle()
+    }catch(error) {
+      console.error('Login error:', error)
+      setError('Error signing in with Google. Please try again.')
+
+    }finally{
+      setLoading(false)
+    }
+  }
   return (
     <div className="min-h-screen bg-[#2b303a] flex flex-col justify-between">
       {/* Header with Logo */}
@@ -24,14 +49,32 @@ const LoginPage: React.FC = () => {
           </h2>
         </div>
 
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+
         {/* Login Buttons */}
         <div className="w-full max-w-sm space-y-4">
           {/* Google Login Button */}
-          <button className="w-full bg-transparent border-2 border-[#92dce5] text-white py-4 px-6 rounded-full flex items-center justify-center space-x-3 hover:bg-[#92dce5] hover:bg-opacity-10 transition-colors">
-            <div className="w-6 h-6 bg-transparent rounded-full flex items-center justify-center">
-              <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M30.0014 16.3109C30.0014 15.1598 29.9061 14.3198 29.6998 13.4487H16.2871V18.6442H24.1601C24.0014 19.9354 23.1442 21.8798 21.2394 23.1864L21.2127 23.3604L25.4536 26.58L25.7474 26.6087C28.4458 24.1665 30.0014 20.5731 30.0014 16.3109Z" fill="#4285F4"></path> <path d="M16.2863 29.9998C20.1434 29.9998 23.3814 28.7553 25.7466 26.6086L21.2386 23.1863C20.0323 24.0108 18.4132 24.5863 16.2863 24.5863C12.5086 24.5863 9.30225 22.1441 8.15929 18.7686L7.99176 18.7825L3.58208 22.127L3.52441 22.2841C5.87359 26.8574 10.699 29.9998 16.2863 29.9998Z" fill="#34A853"></path> <path d="M8.15964 18.769C7.85806 17.8979 7.68352 16.9645 7.68352 16.0001C7.68352 15.0356 7.85806 14.1023 8.14377 13.2312L8.13578 13.0456L3.67083 9.64746L3.52475 9.71556C2.55654 11.6134 2.00098 13.7445 2.00098 16.0001C2.00098 18.2556 2.55654 20.3867 3.52475 22.2845L8.15964 18.769Z" fill="#FBBC05"></path> <path d="M16.2864 7.4133C18.9689 7.4133 20.7784 8.54885 21.8102 9.4978L25.8419 5.64C23.3658 3.38445 20.1435 2 16.2864 2C10.699 2 5.8736 5.1422 3.52441 9.71549L8.14345 13.2311C9.30229 9.85555 12.5086 7.4133 16.2864 7.4133Z" fill="#EB4335"></path> </g></svg>
-            </div>
-            <span className="text-lg font-medium pt-2">Continue with Google</span>
+          <button 
+          onClick={handleGoogleSignIn}
+          disabled={loading}
+          className="w-full bg-transparent border-2 border-[#92dce5] text-white py-4 px-6 rounded-full flex items-center justify-center space-x-3 hover:bg-[#92dce5] hover:bg-opacity-10 transition-colors">
+            {loading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Signing in...
+              </>
+            ) : (
+            <><div className="w-6 h-6 bg-transparent rounded-full flex items-center justify-center">
+                  <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M30.0014 16.3109C30.0014 15.1598 29.9061 14.3198 29.6998 13.4487H16.2871V18.6442H24.1601C24.0014 19.9354 23.1442 21.8798 21.2394 23.1864L21.2127 23.3604L25.4536 26.58L25.7474 26.6087C28.4458 24.1665 30.0014 20.5731 30.0014 16.3109Z" fill="#4285F4"></path> <path d="M16.2863 29.9998C20.1434 29.9998 23.3814 28.7553 25.7466 26.6086L21.2386 23.1863C20.0323 24.0108 18.4132 24.5863 16.2863 24.5863C12.5086 24.5863 9.30225 22.1441 8.15929 18.7686L7.99176 18.7825L3.58208 22.127L3.52441 22.2841C5.87359 26.8574 10.699 29.9998 16.2863 29.9998Z" fill="#34A853"></path> <path d="M8.15964 18.769C7.85806 17.8979 7.68352 16.9645 7.68352 16.0001C7.68352 15.0356 7.85806 14.1023 8.14377 13.2312L8.13578 13.0456L3.67083 9.64746L3.52475 9.71556C2.55654 11.6134 2.00098 13.7445 2.00098 16.0001C2.00098 18.2556 2.55654 20.3867 3.52475 22.2845L8.15964 18.769Z" fill="#FBBC05"></path> <path d="M16.2864 7.4133C18.9689 7.4133 20.7784 8.54885 21.8102 9.4978L25.8419 5.64C23.3658 3.38445 20.1435 2 16.2864 2C10.699 2 5.8736 5.1422 3.52441 9.71549L8.14345 13.2311C9.30229 9.85555 12.5086 7.4133 16.2864 7.4133Z" fill="#EB4335"></path> </g></svg>
+                </div><span className="text-lg font-medium pt-2">Continue with Google</span></>
+            )}
           </button>
 
           {/* Facebook Login Button */}
