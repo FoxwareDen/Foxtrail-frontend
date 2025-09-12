@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { User, Session, AuthError } from '@supabase/supabase-js'
+import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabaseClient'
 
 interface AuthContextType {
@@ -8,6 +8,8 @@ interface AuthContextType {
   loading: boolean
   signInWithGoogle: () => Promise<void>
   signInWithLinkedIn: () => Promise<void>
+  getGoogleOAuthUrl: () => Promise<string>
+  getLinkedInOAuthUrl: () => Promise<string>
   signOut: () => Promise<void>
 }
 
@@ -41,6 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth event:', event)
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)
@@ -80,6 +83,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
+  const getGoogleOAuthUrl = async (): Promise<string> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+          skipBrowserRedirect: true
+        }
+      })
+      if (error) throw error
+      return data.url || ''
+    } catch (error) {
+      console.error('Error getting Google OAuth URL:', error)
+      throw error
+    }
+  }
+
+  const getLinkedInOAuthUrl = async (): Promise<string> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+          skipBrowserRedirect: true
+        }
+      })
+      if (error) throw error
+      return data.url || ''
+    } catch (error) {
+      console.error('Error getting LinkedIn OAuth URL:', error)
+      throw error
+    }
+  }
+
   const signOut = async (): Promise<void> => {
     try {
       const { error } = await supabase.auth.signOut()
@@ -96,6 +133,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     signInWithGoogle,
     signInWithLinkedIn,
+    getGoogleOAuthUrl,
+    getLinkedInOAuthUrl,
     signOut
   }
 

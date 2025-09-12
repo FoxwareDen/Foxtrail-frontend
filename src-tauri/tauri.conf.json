@@ -3,12 +3,14 @@
   "productName": "foxtrail-frontend",
   "version": "0.1.0",
   "identifier": "com.fox5352.foxtrail-frontend",
+
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
+
   "app": {
     "windows": [
       {
@@ -21,6 +23,17 @@
       "csp": null
     }
   },
+
+  "plugins": {
+    "os": {
+      "allowAssetProtocol": true,
+      "allowHttpProtocol": true
+    },
+    "shell": {
+      "open": true
+    }
+  },
+
   "bundle": {
     "active": true,
     "targets": "all",

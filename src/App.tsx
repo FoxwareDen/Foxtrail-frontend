@@ -6,7 +6,6 @@ import JobPrefrences from "./pages/JobPrefrences";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
-import React from "react";
 function App() {
 
 
