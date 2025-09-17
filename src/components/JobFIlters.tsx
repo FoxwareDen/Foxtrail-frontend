@@ -1,12 +1,45 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useJobsStore } from '../stores/jobsStores'
+import { supabase } from '../lib/supabaseClient' // Adjust path as needed
 
 export const JobFilters: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedLocation, setSelectedLocation] = useState('')
+  const [locations, setLocations] = useState<string[]>([])
+  const [loadingLocations, setLoadingLocations] = useState(false)
   
   const { searchJobs, filterByCategory, filterByLocation, fetchJobs } = useJobsStore()
+
+  // Fetch unique locations from database
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        setLoadingLocations(true)
+        
+        const { data: locationData, error: locationError } = await supabase
+          .from('jobs')
+          .select('location')
+          .not('location', 'is', null)
+          .not('location', 'eq', '')
+
+        if (locationError) throw locationError
+
+        // Extract unique locations and sort them
+        const uniqueLocations = Array.from(
+          new Set(locationData?.map(item => item.location?.trim()).filter(Boolean))
+        ).sort()
+
+        setLocations(uniqueLocations)
+      } catch (err) {
+        console.error('Error fetching locations:', err)
+      } finally {
+        setLoadingLocations(false)
+      }
+    }
+
+    fetchLocations()
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,18 +109,23 @@ export const JobFilters: React.FC = () => {
           <option value="Operations">Operations</option>
         </select>
 
-        {/* Location Filter */}
+        {/* Location Filter - Now dynamic from database */}
         <select
           value={selectedLocation}
           onChange={(e) => handleLocationFilter(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={loadingLocations}
         >
           <option value="">All Locations</option>
-          <option value="Remote">Remote</option>
-          <option value="New York">New York</option>
-          <option value="San Francisco">San Francisco</option>
-          <option value="London">London</option>
-          <option value="Berlin">Berlin</option>
+          {loadingLocations ? (
+            <option value="" disabled>Loading locations...</option>
+          ) : (
+            locations.map((location) => (
+              <option key={location} value={location}>
+                {location}
+              </option>
+            ))
+          )}
         </select>
 
         {/* Clear Filters */}

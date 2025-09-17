@@ -1,20 +1,83 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient"; // Adjust path as needed
+
+interface UniqueValues {
+  locations: string[];
+  jobTitles: string[];
+}
 
 const JobPreferences: React.FC = () => {
-  const [location, setLocation] = useState('Cape Town, South Africa');
+  const [location, setLocation] = useState('');
   const [selectedWorkModes, setSelectedWorkModes] = useState<string[]>([]);
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState('Entry level');
-  const [jobTitle, setJobTitle] = useState('Software developer');
+  const [jobTitle, setJobTitle] = useState('');
+  
+  // Database values
+  const [uniqueValues, setUniqueValues] = useState<UniqueValues>({
+    locations: [],
+    jobTitles: []
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const workModes = ['Remote', 'Hybrid', 'On-Site'];
   const jobTypes = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance', 'Commission'];
   const experienceLevels = ['Entry level', 'Mid level', 'Senior level'];
-  const jobTitles = ['Software developer', 'Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'Data Scientist', 'Product Manager'];
   
   const navigate = useNavigate();
+
+  // Fetch unique values from database
+  useEffect(() => {
+    const fetchUniqueValues = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch unique locations
+        const { data: locationData, error: locationError } = await supabase
+          .from('jobs')
+          .select('location')
+          .not('location', 'is', null)
+          .not('location', 'eq', '');
+
+        if (locationError) throw locationError;
+
+        // Fetch unique job titles
+        const { data: titleData, error: titleError } = await supabase
+          .from('jobs')
+          .select('title')
+          .not('title', 'is', null)
+          .not('title', 'eq', '');
+
+        if (titleError) throw titleError;
+
+        // Extract unique values and sort them
+        const uniqueLocations = Array.from(
+          new Set(locationData?.map(item => item.location?.trim()).filter(Boolean))
+        ).sort();
+
+        const uniqueTitles = Array.from(
+          new Set(titleData?.map(item => item.title?.trim()).filter(Boolean))
+        ).sort();
+
+        setUniqueValues({
+          locations: uniqueLocations,
+          jobTitles: uniqueTitles
+        });
+
+      } catch (err) {
+        console.error('Error fetching unique values:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUniqueValues();
+  }, []);
 
   const toggleWorkMode = (mode: string) => {
     setSelectedWorkModes(prev => 
@@ -41,13 +104,23 @@ const JobPreferences: React.FC = () => {
       jobTitle
     };
     console.log('Job Preferences:', preferences);
-    // Handle form submission here
+    // Handle form submission here - you might want to save to localStorage or navigate with stat
   };
 
   const handleBack = () => {
-    // Handle back navigation
     navigate("/dashboard")
   };
+
+  if (loading) {
+    return (
+      <div className="bg-[#2B303A] text-white min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D64933] mx-auto mb-4"></div>
+          <p>Loading job data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#2B303A] text-white min-h-screen p-6">
@@ -65,23 +138,40 @@ const JobPreferences: React.FC = () => {
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-500/20 border border-red-500 rounded-lg p-4 mb-6">
+            <p className="text-red-200">{error}</p>
+          </div>
+        )}
+
         {/* Title */}
         <h1 className="text-xl font-light mb-8">Filter Job preferences</h1>
 
         {/* Location Section */}
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4">Location</h2>
-          <div className="bg-transparent rounded-full px-4 py-3 flex items-center border border-slate-500">
-            <div className="w-4 h-4 border-none border-white rounded-full mr-3 flex items-center justify-center">
-              <svg viewBox="-4 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg"  fill="#ffffff" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>location</title> <desc>Created with Sketch Beta.</desc> <defs> </defs> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="Icon-Set" transform="translate(-104.000000, -411.000000)" fill="#ffffff"> <path d="M116,426 C114.343,426 113,424.657 113,423 C113,421.343 114.343,420 116,420 C117.657,420 119,421.343 119,423 C119,424.657 117.657,426 116,426 L116,426 Z M116,418 C113.239,418 111,420.238 111,423 C111,425.762 113.239,428 116,428 C118.761,428 121,425.762 121,423 C121,420.238 118.761,418 116,418 L116,418 Z M116,440 C114.337,440.009 106,427.181 106,423 C106,417.478 110.477,413 116,413 C121.523,413 126,417.478 126,423 C126,427.125 117.637,440.009 116,440 L116,440 Z M116,411 C109.373,411 104,416.373 104,423 C104,428.018 114.005,443.011 116,443 C117.964,443.011 128,427.95 128,423 C128,416.373 122.627,411 116,411 L116,411 Z" id="location" > </path> </g> </g> </g></svg>
-            </div>
-            <input
-              type="text"
+          <div className="relative">
+            <select 
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="bg-transparent outline-none text-white w-full"
-              placeholder="Enter location"
-            />
+              className="w-full bg-transparent border border-slate-500 rounded-lg px-4 py-3 text-white appearance-none cursor-pointer hover:bg-slate-600 transition-colors"
+              disabled={uniqueValues.locations.length === 0}
+            >
+              <option value="" className="bg-slate-600">
+                {uniqueValues.locations.length === 0 ? 'Loading locations...' : 'Select a location'}
+              </option>
+              {uniqueValues.locations.map((loc) => (
+                <option key={loc} value={loc} className="bg-slate-600">
+                  {loc}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+              <svg className="w-4 h-4 text-[#D64933]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -171,9 +261,13 @@ const JobPreferences: React.FC = () => {
             <select 
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
-              className="w-full bg-transparent border border-slate-500 rounded-lg px-4 py-3 text-white appearance-none cursor-pointer hover:bg-slate-500 transition-colors"
+              className="w-full bg-transparent border border-slate-500 rounded-lg px-4 py-3 text-white appearance-none cursor-pointer hover:bg-slate-600 transition-colors"
+              disabled={uniqueValues.jobTitles.length === 0}
             >
-              {jobTitles.map((title) => (
+              <option value="" className="bg-slate-600">
+                {uniqueValues.jobTitles.length === 0 ? 'Loading job titles...' : 'Select a job title'}
+              </option>
+              {uniqueValues.jobTitles.map((title) => (
                 <option key={title} value={title} className="bg-slate-600">
                   {title}
                 </option>
@@ -191,7 +285,8 @@ const JobPreferences: React.FC = () => {
         <div className="flex justify-center">
           <button 
             onClick={handleApply}
-            className="bg-[#D64933] hover:bg-orange-600 text-white px-16 py-4 rounded-full text-lg font-medium transition-colors"
+            disabled={!location || !jobTitle}
+            className="bg-[#D64933] hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-16 py-4 rounded-full text-lg font-medium transition-colors"
           >
             Apply
           </button>
