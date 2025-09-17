@@ -11,6 +11,9 @@ const Dashboard: React.FC = () => {
     // Navigate to job preferences page
     navigate("/job-preferences")
   }
+  const handleExploreNewJobs = () =>{
+    navigate("/job-listings")
+  }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#2B303A' }}>
@@ -97,6 +100,7 @@ const Dashboard: React.FC = () => {
                 backgroundColor: '#353b47',
                 boxShadow: '0 4px 6px -1px rgba(214, 73, 51, 0.1)'
               }}
+              onClick={handleExploreNewJobs}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#3f4651';
               }}

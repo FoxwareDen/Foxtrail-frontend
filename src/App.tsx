@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import LoginPage from './pages/LoginPage';
 import Dashboard from "./pages/Dashboard";
 import JobPrefrences from "./pages/JobPrefrences";
-import Profile from "./pages/Profile";
+import JobListings from "./pages/JobListings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 function App() {
@@ -24,10 +24,10 @@ function App() {
               } 
             />
             <Route 
-              path="/profile" 
+              path="/job-listings" 
               element={
                 <ProtectedRoute>
-                  <Profile />
+                  <JobListings />
                 </ProtectedRoute>
               } 
             />
