@@ -10,10 +10,11 @@ interface UniqueValues {
 
 const JobPreferences: React.FC = () => {
   const [location, setLocation] = useState('');
+  const [city, setCity] = useState('');
   const [selectedWorkModes, setSelectedWorkModes] = useState<string[]>([]);
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState('Entry level');
-  const [jobTitle, setJobTitle] = useState('');
+  const [selectedJobTitles, setSelectedJobTitles] = useState<string[]>([]);
   
   // Database values
   const [uniqueValues, setUniqueValues] = useState<UniqueValues>({
@@ -22,6 +23,17 @@ const JobPreferences: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Map countries to their default cities
+  const countryCityMap: { [key: string]: string } = {
+    'South Africa': 'Cape Town',
+    'United States': 'New York',
+    'Netherlands': 'Amsterdam',
+    'United Kingdom': 'London',
+    'Germany': 'Berlin'
+  };
 
   const workModes = ['Remote', 'Hybrid', 'On-Site'];
   const jobTypes = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance', 'Commission'];
@@ -79,6 +91,25 @@ const JobPreferences: React.FC = () => {
     fetchUniqueValues();
   }, []);
 
+  // Auto-set city when location (country) changes
+  useEffect(() => {
+    if (location && countryCityMap[location]) {
+      setCity(countryCityMap[location]);
+    } else {
+      setCity('');
+    }
+  }, [location]);
+
+  // Clear success message after 5 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
   const toggleWorkMode = (mode: string) => {
     setSelectedWorkModes(prev => 
       prev.includes(mode) 
@@ -95,16 +126,67 @@ const JobPreferences: React.FC = () => {
     );
   };
 
-  const handleApply = () => {
-    const preferences = {
-      location,
-      selectedWorkModes,
-      selectedJobTypes,
-      experienceLevel,
-      jobTitle
-    };
-    console.log('Job Preferences:', preferences);
-    // Handle form submission here - you might want to save to localStorage or navigate with stat
+  const toggleJobTitle = (title: string) => {
+    setSelectedJobTitles(prev => {
+      if (prev.includes(title)) {
+        return prev.filter(t => t !== title);
+      } else if (prev.length < 3) {
+        return [...prev, title];
+      }
+      return prev; // Don't add if already at max
+    });
+  };
+
+  const handleApply = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccessMessage(null);
+
+      // Get the current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        throw new Error('Authentication error: ' + authError.message);
+      }
+      
+      if (!user) {
+        throw new Error('You must be logged in to save preferences');
+      }
+
+      const preferences = {
+        user_id: user.id,
+        country: location,
+        city,
+        work_modes: selectedWorkModes,
+        job_types: selectedJobTypes,
+        experience_level: experienceLevel,
+        job_titles: selectedJobTitles,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('Saving job preferences:', preferences);
+
+      const { data, error } = await supabase
+        .from('user_job_pref')
+        .insert([preferences])
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Job preferences saved successfully:', data);
+      setSuccessMessage('Your job preferences have been set! You will now receive notifications based on your job preferences.');
+      
+    } catch (err) {
+      console.error('Error saving job preferences:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save job preferences');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleBack = () => {
@@ -131,12 +213,19 @@ const JobPreferences: React.FC = () => {
             className="text-[#D64933] text-2xl cursor-pointer hover:text-orange-400"
             onClick={handleBack}
           >
-            ↺
+            ←
           </div>
           <div className="text-[#D64933] text-2xl font-bold">
             FoxTrail
           </div>
         </div>
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="bg-green-500/20 border border-green-500 rounded-lg p-4 mb-6">
+            <p className="text-green-200">{successMessage}</p>
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
@@ -256,28 +345,27 @@ const JobPreferences: React.FC = () => {
 
         {/* Job Title Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Job title</h2>
-          <div className="relative">
-            <select 
-              value={jobTitle}
-              onChange={(e) => setJobTitle(e.target.value)}
-              className="w-full bg-transparent border border-slate-500 rounded-lg px-4 py-3 text-white appearance-none cursor-pointer hover:bg-slate-600 transition-colors"
-              disabled={uniqueValues.jobTitles.length === 0}
-            >
-              <option value="" className="bg-slate-600">
-                {uniqueValues.jobTitles.length === 0 ? 'Loading job titles...' : 'Select a job title'}
-              </option>
-              {uniqueValues.jobTitles.map((title) => (
-                <option key={title} value={title} className="bg-slate-600">
-                  {title}
-                </option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-              <svg className="w-4 h-4 text-[#D64933]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
+          <h2 className="text-xl font-bold mb-4">Job title (Select up to 3)</h2>
+          <div className="mb-2">
+            <p className="text-sm text-gray-400">
+              Selected: {selectedJobTitles.length}/3
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {uniqueValues.jobTitles.map((title) => (
+              <button
+                key={title}
+                onClick={() => toggleJobTitle(title)}
+                disabled={!selectedJobTitles.includes(title) && selectedJobTitles.length >= 3}
+                className={`px-4 py-2 rounded-full border-2 transition-colors text-sm ${
+                  selectedJobTitles.includes(title)
+                    ? 'border-[#D64933] bg-[#D64933] text-white'
+                    : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10 disabled:opacity-50 disabled:cursor-not-allowed'
+                }`}
+              >
+                {title}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -285,10 +373,13 @@ const JobPreferences: React.FC = () => {
         <div className="flex justify-center">
           <button 
             onClick={handleApply}
-            disabled={!location || !jobTitle}
-            className="bg-[#D64933] hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-16 py-4 rounded-full text-lg font-medium transition-colors"
+            disabled={!location || !city || selectedJobTitles.length === 0 || saving}
+            className="bg-[#D64933] hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-16 py-4 rounded-full text-lg font-medium transition-colors flex items-center gap-2"
           >
-            Apply
+            {saving && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            )}
+            {saving ? 'Saving...' : 'Apply'}
           </button>
         </div>
       </div>
