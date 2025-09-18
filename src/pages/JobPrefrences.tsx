@@ -38,10 +38,10 @@ const JobPreferences: React.FC = () => {
 
         // Fetch unique locations
         const { data: locationData, error: locationError } = await supabase
-          .from('jobs')
-          .select('location')
-          .not('location', 'is', null)
-          .not('location', 'eq', '');
+          .from('location_form_data')
+          .select('country')
+          .not('country', 'is', null)
+          .not('country', 'eq', '');
 
         if (locationError) throw locationError;
 
@@ -56,7 +56,7 @@ const JobPreferences: React.FC = () => {
 
         // Extract unique values and sort them
         const uniqueLocations = Array.from(
-          new Set(locationData?.map(item => item.location?.trim()).filter(Boolean))
+          new Set(locationData?.map(item => item.country?.trim()).filter(Boolean))
         ).sort();
 
         const uniqueTitles = Array.from(
