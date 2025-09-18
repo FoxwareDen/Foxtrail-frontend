@@ -8,13 +8,23 @@ interface UniqueValues {
   jobTitles: string[];
 }
 
+interface JobPreference {
+  id: string;
+  country: string;
+  city: string;
+  work_modes: string[];
+  job_types: string[];
+  experience_level: string;
+  job_titles: string[];
+}
+
 const JobPreferences: React.FC = () => {
   const [location, setLocation] = useState('');
   const [city, setCity] = useState('');
   const [selectedWorkModes, setSelectedWorkModes] = useState<string[]>([]);
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState('Entry level');
-  const [selectedJobTitles, setSelectedJobTitles] = useState<string[]>([]);
+  const [jobTitle, setJobTitle] = useState('');
   
   // Database values
   const [uniqueValues, setUniqueValues] = useState<UniqueValues>({
@@ -25,6 +35,8 @@ const JobPreferences: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [existingPreference, setExistingPreference] = useState<JobPreference | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   // Map countries to their default cities
   const countryCityMap: { [key: string]: string } = {
@@ -41,55 +53,106 @@ const JobPreferences: React.FC = () => {
   
   const navigate = useNavigate();
 
-  // Fetch unique values from database
+  // Check authentication first
   useEffect(() => {
-    const fetchUniqueValues = async () => {
+    const checkAuth = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch unique locations
-        const { data: locationData, error: locationError } = await supabase
-          .from('location_form_data')
-          .select('country')
-          .not('country', 'is', null)
-          .not('country', 'eq', '');
-
-        if (locationError) throw locationError;
-
-        // Fetch unique job titles
-        const { data: titleData, error: titleError } = await supabase
-          .from('jobs')
-          .select('title')
-          .not('title', 'is', null)
-          .not('title', 'eq', '');
-
-        if (titleError) throw titleError;
-
-        // Extract unique values and sort them
-        const uniqueLocations = Array.from(
-          new Set(locationData?.map(item => item.country?.trim()).filter(Boolean))
-        ).sort();
-
-        const uniqueTitles = Array.from(
-          new Set(titleData?.map(item => item.title?.trim()).filter(Boolean))
-        ).sort();
-
-        setUniqueValues({
-          locations: uniqueLocations,
-          jobTitles: uniqueTitles
-        });
-
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) {
+          throw new Error('Authentication error: ' + authError.message);
+        }
+        
+        if (!user) {
+          setError('You must be logged in to access job preferences');
+          setLoading(false);
+          return;
+        }
+        
+        setUser(user);
+        fetchData(user.id);
       } catch (err) {
-        console.error('Error fetching unique values:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load data');
-      } finally {
+        console.error('Error checking authentication:', err);
+        setError(err instanceof Error ? err.message : 'Authentication failed');
         setLoading(false);
       }
     };
 
-    fetchUniqueValues();
+    checkAuth();
   }, []);
+
+  // Fetch unique values from database and user's existing preference
+  const fetchData = async (userId: string) => {
+    try {
+      setError(null);
+
+      // Fetch user's existing job preference
+      const { data: preferenceData, error: preferenceError } = await supabase
+        .from('user_job_pref')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (preferenceError) {
+        console.error('Error fetching preference:', preferenceError);
+        // Continue loading other data even if preference fetch fails
+      }
+
+      if (preferenceData) {
+        setExistingPreference(preferenceData);
+        setLocation(preferenceData.country || '');
+        setCity(preferenceData.city || '');
+        setSelectedWorkModes(preferenceData.work_modes || []);
+        setSelectedJobTypes(preferenceData.job_types || []);
+        setExperienceLevel(preferenceData.experience_level || 'Entry level');
+        setJobTitle(preferenceData.job_titles?.[0] || '');
+      }
+
+      // Fetch unique locations
+      const { data: locationData, error: locationError } = await supabase
+        .from('location_form_data')
+        .select('country')
+        .not('country', 'is', null)
+        .not('country', 'eq', '');
+
+      if (locationError) {
+        console.error('Error fetching locations:', locationError);
+        throw locationError;
+      }
+
+      // Fetch unique job titles
+      const { data: titleData, error: titleError } = await supabase
+        .from('jobs')
+        .select('title')
+        .not('title', 'is', null)
+        .not('title', 'eq', '');
+
+      if (titleError) {
+        console.error('Error fetching job titles:', titleError);
+        throw titleError;
+      }
+
+      // Extract unique values and sort them
+      const uniqueLocations = Array.from(
+        new Set(locationData?.map(item => item.country?.trim()).filter(Boolean))
+      ).sort();
+
+      const uniqueTitles = Array.from(
+        new Set(titleData?.map(item => item.title?.trim()).filter(Boolean))
+      ).sort();
+
+      setUniqueValues({
+        locations: uniqueLocations,
+        jobTitles: uniqueTitles
+      });
+
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Auto-set city when location (country) changes
   useEffect(() => {
@@ -126,30 +189,12 @@ const JobPreferences: React.FC = () => {
     );
   };
 
-  const toggleJobTitle = (title: string) => {
-    setSelectedJobTitles(prev => {
-      if (prev.includes(title)) {
-        return prev.filter(t => t !== title);
-      } else if (prev.length < 3) {
-        return [...prev, title];
-      }
-      return prev; // Don't add if already at max
-    });
-  };
-
-  const handleApply = async () => {
+  const handleSave = async () => {
     try {
       setSaving(true);
       setError(null);
       setSuccessMessage(null);
 
-      // Get the current user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError) {
-        throw new Error('Authentication error: ' + authError.message);
-      }
-      
       if (!user) {
         throw new Error('You must be logged in to save preferences');
       }
@@ -161,25 +206,36 @@ const JobPreferences: React.FC = () => {
         work_modes: selectedWorkModes,
         job_types: selectedJobTypes,
         experience_level: experienceLevel,
-        job_titles: selectedJobTitles,
-        created_at: new Date().toISOString(),
+        job_titles: [jobTitle], // Store as array with single element
         updated_at: new Date().toISOString()
       };
 
       console.log('Saving job preferences:', preferences);
 
-      const { data, error } = await supabase
-        .from('user_job_pref')
-        .insert([preferences])
-        .select();
+      let result;
+      if (existingPreference) {
+        // Update existing preference
+        const { data, error } = await supabase
+          .from('user_job_pref')
+          .update(preferences)
+          .eq('id', existingPreference.id)
+          .select();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+        if (error) throw error;
+        result = data;
+      } else {
+        // Create new preference
+        const { data, error } = await supabase
+          .from('user_job_pref')
+          .insert([{ ...preferences, created_at: new Date().toISOString() }])
+          .select();
+
+        if (error) throw error;
+        result = data;
       }
 
-      console.log('Job preferences saved successfully:', data);
-      setSuccessMessage('Your job preferences have been set! You will now receive notifications based on your job preferences.');
+      console.log('Job preferences saved successfully:', result);
+      setSuccessMessage('Your job preferences have been updated!');
       
     } catch (err) {
       console.error('Error saving job preferences:', err);
@@ -199,6 +255,23 @@ const JobPreferences: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D64933] mx-auto mb-4"></div>
           <p>Loading job data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !user) {
+    return (
+      <div className="bg-[#2B303A] text-white min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-4">Authentication Required</div>
+          <p className="mb-6">{error}</p>
+          <button 
+            onClick={() => navigate('/login')}
+            className="bg-[#D64933] hover:bg-orange-600 text-white px-6 py-2 rounded-full"
+          >
+            Go to Login
+          </button>
         </div>
       </div>
     );
@@ -345,41 +418,42 @@ const JobPreferences: React.FC = () => {
 
         {/* Job Title Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Job title (Select up to 3)</h2>
-          <div className="mb-2">
-            <p className="text-sm text-gray-400">
-              Selected: {selectedJobTitles.length}/3
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {uniqueValues.jobTitles.map((title) => (
-              <button
-                key={title}
-                onClick={() => toggleJobTitle(title)}
-                disabled={!selectedJobTitles.includes(title) && selectedJobTitles.length >= 3}
-                className={`px-4 py-2 rounded-full border-2 transition-colors text-sm ${
-                  selectedJobTitles.includes(title)
-                    ? 'border-[#D64933] bg-[#D64933] text-white'
-                    : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10 disabled:opacity-50 disabled:cursor-not-allowed'
-                }`}
-              >
-                {title}
-              </button>
-            ))}
+          <h2 className="text-xl font-bold mb-4">Job title</h2>
+          <div className="relative">
+            <select 
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              className="w-full bg-transparent border border-slate-500 rounded-lg px-4 py-3 text-white appearance-none cursor-pointer hover:bg-slate-600 transition-colors"
+              disabled={uniqueValues.jobTitles.length === 0}
+            >
+              <option value="" className="bg-slate-600">
+                {uniqueValues.jobTitles.length === 0 ? 'Loading job titles...' : 'Select a job title'}
+              </option>
+              {uniqueValues.jobTitles.map((title) => (
+                <option key={title} value={title} className="bg-slate-600">
+                  {title}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+              <svg className="w-4 h-4 text-[#D64933]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
         </div>
 
-        {/* Apply Button */}
+        {/* Save/Update Button */}
         <div className="flex justify-center">
           <button 
-            onClick={handleApply}
-            disabled={!location || !city || selectedJobTitles.length === 0 || saving}
+            onClick={handleSave}
+            disabled={!location || !city || !jobTitle || saving}
             className="bg-[#D64933] hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-16 py-4 rounded-full text-lg font-medium transition-colors flex items-center gap-2"
           >
             {saving && (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
             )}
-            {saving ? 'Saving...' : 'Apply'}
+            {saving ? 'Saving...' : existingPreference ? 'Update Job Preferences' : 'Save Job Preferences'}
           </button>
         </div>
       </div>
