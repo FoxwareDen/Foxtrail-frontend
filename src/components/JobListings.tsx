@@ -5,6 +5,7 @@ import { JobCard } from './JobCard'
 import { JobFilters } from './JobFIlters'
 import { JobModal } from './JobModal'
 import { Job } from '../lib/supabaseClient'
+import { useNavigate } from 'react-router-dom'
 
 export const JobListing: React.FC = () => {
   const { 
@@ -36,6 +37,11 @@ export const JobListing: React.FC = () => {
       window.open(job.redirect_url, '_blank')
     }
   }
+  const navigate = useNavigate();
+  // handle back button logic
+  const handleBack = () =>{
+    navigate('/dashboard')
+  }
 
   if (loading && jobs.length === 0) {
     return (
@@ -59,9 +65,16 @@ export const JobListing: React.FC = () => {
       className="min-h-screen py-8"
       style={{ backgroundColor: '#2b303a' }}
     >
+         
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
+           <div 
+            className="text-[#D64933] text-2xl cursor-pointer hover:text-orange-400"
+            onClick={handleBack}
+          >
+            ←
+          </div>
           <h1 className="text-3xl font-bold mb-2" style={{ color: '#eee5e9' }}>
             Job Listings
           </h1>
