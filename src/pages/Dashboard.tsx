@@ -17,21 +17,42 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#2B303A' }}>
-      <nav className="shadow-lg" style={{ backgroundColor: '#1f242c' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold" style={{ color: '#D64933' }}>FoxTrail</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span style={{ color: '#eee5e9' }}>
-                Welcome, {user?.user_metadata?.name || user?.email}
-              </span>
-              <LogoutButton />
-            </div>
-          </div>
-        </div>
-      </nav>
+<nav className="shadow-lg" style={{ backgroundColor: '#1f242c' }}>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex justify-between items-center h-16">
+      {/* Logo - always visible */}
+      <div className="flex-shrink-0">
+        <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#D64933' }}>
+          FoxTrail
+        </h1>
+      </div>
+      
+      {/* Desktop user info and logout */}
+      <div className="hidden sm:flex items-center space-x-4">
+        <span 
+          className="text-sm lg:text-base truncate max-w-xs lg:max-w-sm" 
+          style={{ color: '#eee5e9' }}
+          title={user?.user_metadata?.name || user?.email}
+        >
+          Welcome, {user?.user_metadata?.name || user?.email}
+        </span>
+        <LogoutButton />
+      </div>
+      
+      {/* Mobile user info and logout */}
+      <div className="flex sm:hidden items-center space-x-2">
+        <span 
+          className="text-xs truncate max-w-24" 
+          style={{ color: '#eee5e9' }}
+          title={user?.user_metadata?.name || user?.email}
+        >
+          {user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0]}
+        </span>
+        <LogoutButton />
+      </div>
+    </div>
+  </div>
+</nav>
       
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
@@ -116,52 +137,6 @@ const Dashboard: React.FC = () => {
                 <h3 className="text-lg font-semibold" style={{ color: '#eee5e9' }}>Browse Jobs</h3>
               </div>
               <p style={{ color: '#7c7c7c' }}>Discover new opportunities</p>
-            </div>
-            
-            <div 
-              className="rounded-lg p-6 transition-all duration-200 cursor-pointer hover:scale-105"
-              style={{ 
-                backgroundColor: '#353b47',
-                boxShadow: '0 4px 6px -1px rgba(214, 73, 51, 0.1)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#3f4651';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#353b47';
-              }}
-            >
-              <div className="flex items-center mb-2">
-                <div 
-                  className="w-3 h-3 rounded-full mr-3"
-                  style={{ backgroundColor: '#92DCE5' }}
-                ></div>
-                <h3 className="text-lg font-semibold" style={{ color: '#eee5e9' }}>My Applications</h3>
-              </div>
-              <p style={{ color: '#7c7c7c' }}>Track your job applications</p>
-            </div>
-            
-            <div 
-              className="rounded-lg p-6 transition-all duration-200 cursor-pointer hover:scale-105"
-              style={{ 
-                backgroundColor: '#353b47',
-                boxShadow: '0 4px 6px -1px rgba(214, 73, 51, 0.1)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#3f4651';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#353b47';
-              }}
-            >
-              <div className="flex items-center mb-2">
-                <div 
-                  className="w-3 h-3 rounded-full mr-3"
-                  style={{ backgroundColor: '#92DCE5' }}
-                ></div>
-                <h3 className="text-lg font-semibold" style={{ color: '#eee5e9' }}>Profile Settings</h3>
-              </div>
-              <p style={{ color: '#7c7c7c' }}>Update your information</p>
             </div>
           </div>
         </div>

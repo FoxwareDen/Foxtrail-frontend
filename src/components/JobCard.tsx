@@ -17,21 +17,32 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onClick }) => {
 
   return (
     <div 
-      className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
+      className="rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border"
+      style={{ 
+        backgroundColor: '#2b303a', 
+        borderColor: '#717171',
+        color: '#eee5e9' 
+      }}
       onClick={() => onClick(job)}
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
+          <h3 className="text-xl font-semibold mb-2 line-clamp-2" style={{ color: '#eee5e9' }}>
             {job.title}
           </h3>
-          <p className="text-lg text-blue-600 font-medium mb-1">
+          <p className="text-lg font-medium mb-1" style={{ color: '#D64933' }}>
             {job.company}
           </p>
         </div>
         <div className="ml-4">
           {job.contract && (
-            <span className="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+            <span 
+              className="inline-block text-sm font-medium px-3 py-1 rounded-full"
+              style={{ 
+                backgroundColor: '#92DCE5', 
+                color: '#2b303a' 
+              }}
+            >
               {job.contract}
             </span>
           )}
@@ -40,13 +51,13 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onClick }) => {
 
       <div className="space-y-2 mb-4">
         {job.location && (
-          <p className="text-gray-600 flex items-center">
+          <p className="flex items-center" style={{ color: '#7c7c7c' }}>
             <span className="mr-2">📍</span>
             {job.location}
           </p>
         )}
         {job.category && (
-          <p className="text-gray-600 flex items-center">
+          <p className="flex items-center" style={{ color: '#7c7c7c' }}>
             <span className="mr-2">🏷️</span>
             {job.category}
           </p>
@@ -54,16 +65,16 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onClick }) => {
       </div>
 
       {job.description && (
-        <p className="text-gray-700 text-sm line-clamp-3 mb-4">
+        <p className="text-sm line-clamp-3 mb-4" style={{ color: '#eee5e9' }}>
           {job.description}
         </p>
       )}
 
-      <div className="flex justify-between items-center text-sm text-gray-500">
+      <div className="flex justify-between items-center text-sm" style={{ color: '#7c7c7c' }}>
         <span>
           Posted: {job.listing_created_at ? formatDate(job.listing_created_at) : formatDate(job.created_at)}
         </span>
-        <span className="text-blue-600 hover:text-blue-800">
+        <span className="hover:opacity-80" style={{ color: '#D64933' }}>
           View Details →
         </span>
       </div>

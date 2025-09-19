@@ -1,7 +1,7 @@
 // src/components/JobListing.tsx
 import React, { useEffect } from 'react'
 import { useJobsStore } from '../stores/jobsStores'
-import { JobCard } from './jobCard'
+import { JobCard } from './JobCard'
 import { JobFilters } from './JobFIlters'
 import { JobModal } from './JobModal'
 import { Job } from '../lib/supabaseClient'
@@ -39,40 +39,56 @@ export const JobListing: React.FC = () => {
 
   if (loading && jobs.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: '#2b303a' }}
+      >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading jobs...</p>
+          <div 
+            className="animate-spin rounded-full h-32 w-32 border-b-2 mx-auto mb-4"
+            style={{ borderBottomColor: '#D64933' }}
+          ></div>
+          <p className="text-lg" style={{ color: '#eee5e9' }}>Loading jobs...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div 
+      className="min-h-screen py-8"
+      style={{ backgroundColor: '#2b303a' }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: '#eee5e9' }}>
             Job Listings
           </h1>
-          <p className="text-gray-600">
+          <p style={{ color: '#717171' }}>
             Find your next opportunity from {jobs.length} available positions
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+          <div 
+            className="border rounded-md p-4 mb-6"
+            style={{ 
+              backgroundColor: '#D64933',
+              borderColor: '#D64933'
+            }}
+          >
             <div className="flex">
               <div className="flex-shrink-0">
-                <span className="text-red-400">⚠️</span>
+                <span style={{ color: '#eee5e9' }}>⚠️</span>
               </div>
               <div className="ml-3">
-                <p className="text-red-800">{error}</p>
+                <p style={{ color: '#eee5e9' }}>{error}</p>
                 <button
                   onClick={clearError}
-                  className="mt-2 text-sm text-red-600 hover:text-red-500 underline"
+                  className="mt-2 text-sm underline hover:opacity-80"
+                  style={{ color: '#eee5e9' }}
                 >
                   Dismiss
                 </button>
@@ -87,17 +103,23 @@ export const JobListing: React.FC = () => {
         {/* Loading indicator for filter operations */}
         {loading && jobs.length > 0 && (
           <div className="flex justify-center mb-6">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div 
+              className="animate-spin rounded-full h-8 w-8 border-b-2"
+              style={{ borderBottomColor: '#D64933' }}
+            ></div>
           </div>
         )}
 
         {/* Job Grid */}
         {jobs.length === 0 && !loading ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No jobs found matching your criteria.</p>
+            <p className="text-lg mb-4" style={{ color: '#717171' }}>
+              No jobs found matching your criteria.
+            </p>
             <button
               onClick={fetchJobs}
-              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-6 py-2 text-white rounded-md hover:opacity-80"
+              style={{ backgroundColor: '#D64933' }}
             >
               Show All Jobs
             </button>
@@ -119,7 +141,12 @@ export const JobListing: React.FC = () => {
           <div className="mt-8 text-center">
             <button
               onClick={fetchJobs}
-              className="px-6 py-3 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"
+              className="px-6 py-3 border rounded-md hover:opacity-80 focus:ring-2 focus:outline-none"
+              style={{ 
+                backgroundColor: '#92DCE5',
+                borderColor: '#92DCE5',
+                color: '#2b303a',
+              }}
             >
               Refresh Jobs
             </button>

@@ -76,7 +76,10 @@ export const JobFilters: React.FC = () => {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div 
+      className="p-6 rounded-lg shadow-md mb-6"
+      style={{ backgroundColor: '#2b303a' }}
+    >
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Search */}
         <form onSubmit={handleSearch} className="flex">
@@ -85,11 +88,19 @@ export const JobFilters: React.FC = () => {
             placeholder="Search jobs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-4 py-2 border rounded-l-md focus:ring-2 focus:outline-none"
+            style={{ 
+              backgroundColor: '#2b303a',
+              borderColor: '#717171',
+              color: '#eee5e9',
+            }}
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 text-white rounded-r-md hover:opacity-80 focus:ring-2 focus:outline-none"
+            style={{ 
+              backgroundColor: '#D64933',
+            }}
           >
             🔍
           </button>
@@ -99,7 +110,13 @@ export const JobFilters: React.FC = () => {
         <select
           value={selectedCategory}
           onChange={(e) => handleCategoryFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="px-4 py-2 border rounded-md focus:ring-2 focus:outline-none"
+          style={{ 
+            backgroundColor: '#2b303a',
+            borderColor: '#717171',
+            color: '#eee5e9',
+            
+          }}
         >
           <option value="">All Categories</option>
           <option value="Engineering">Engineering</option>
@@ -113,7 +130,13 @@ export const JobFilters: React.FC = () => {
         <select
           value={selectedLocation}
           onChange={(e) => handleLocationFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="px-4 py-2 border rounded-md focus:ring-2 focus:outline-none"
+          style={{ 
+            backgroundColor: '#2b303a',
+            borderColor: '#717171',
+            color: '#eee5e9',
+            
+          }}
           disabled={loadingLocations}
         >
           <option value="">All Locations</option>
@@ -131,7 +154,11 @@ export const JobFilters: React.FC = () => {
         {/* Clear Filters */}
         <button
           onClick={clearFilters}
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:ring-2 focus:ring-gray-500"
+          className="px-4 py-2 rounded-md hover:opacity-80 focus:ring-2 focus:outline-none"
+          style={{ 
+            backgroundColor: '#92DCE5',
+            color: '#2b303a',
+          }}
         >
           Clear Filters
         </button>
