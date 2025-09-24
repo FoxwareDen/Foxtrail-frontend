@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "907833402967",
+    "project_id": "foxtrail-471618",
+    "storage_bucket": "foxtrail-471618.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:907833402967:android:c52310d6bfd4d31606e512",
+        "android_client_info": {
+          "package_name": "com.fox5352.foxtrail_frontend"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "907833402967-cdtn11v6gpoa83avk45r9rbb8poimqt1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDA_LNP0OS9cqFb8hkEJ0YFbtNefJ0UN5c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "907833402967-cdtn11v6gpoa83avk45r9rbb8poimqt1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
