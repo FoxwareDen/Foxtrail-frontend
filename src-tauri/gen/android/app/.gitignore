@@ -1,4 +1,4 @@
-/src/main/java/com/fox5352/foxtrail_frontend/generated
+/src/main/java/com/fox5352/foxtrail/generated
 /src/main/jniLibs/**/*.so
 /src/main/assets/tauri.conf.json
 /tauri.build.gradle.kts

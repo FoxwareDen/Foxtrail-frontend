@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">foxtrail-frontend</string>
-    <string name="main_activity_title">foxtrail-frontend</string>
+    <string name="app_name">foxtrail</string>
+    <string name="main_activity_title">foxtrail</string>
 </resources>

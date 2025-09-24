@@ -8,3 +8,20 @@ if (!supabaseUrl || !supabaseAnonKey){
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export interface Job{
+    id: number,
+    created_at: string,
+    api_id: string | null,
+    adref: string | null,
+    title: string,
+    listing_created_at: string | null,
+    category: string | null,
+    location: string | null,
+    description: string | null,
+    redirect_url: string | null,
+    contract: string | null,
+    company: string | null
+
+
+}
