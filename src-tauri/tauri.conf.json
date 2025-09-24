@@ -1,20 +1,18 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "foxtrail-frontend",
+  "productName": "foxtrail",
   "version": "0.1.0",
-  "identifier": "com.fox5352.foxtrail_frontend",
-
+  "identifier": "com.fox5352.foxtrail",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
-
   "app": {
     "windows": [
       {
-        "title": "foxtrail-frontend",
+        "title": "foxtrail",
         "width": 800,
         "height": 600
       }
@@ -23,7 +21,6 @@
       "csp": null
     }
   },
-
   "plugins": {
     "os": {
       "allowAssetProtocol": true,
@@ -33,7 +30,6 @@
       "open": true
     }
   },
-
   "bundle": {
     "active": true,
     "targets": "all",

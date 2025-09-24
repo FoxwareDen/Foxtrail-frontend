@@ -14,7 +14,7 @@ const LoginPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   // Hardcode your OAuth URLs (replace with your actual values)  
-  const LINKEDIN_OAUTH_URL = `https://fvlsvvzbywmozvhwxmzl.supabase.co/auth/v1/authorize?provider=linkedin_oidc&redirect_to=${encodeURIComponent('com.fox5352.foxtrail_frontend://auth/callback')}`;
+  const LINKEDIN_OAUTH_URL = `https://fvlsvvzbywmozvhwxmzl.supabase.co/auth/v1/authorize?provider=linkedin_oidc&redirect_to=${encodeURIComponent('com.fox5352.foxtrail://auth/callback')}`;
 
   useEffect(() => {
     const checkPlatform = async () => {
@@ -44,12 +44,12 @@ const LoginPage: React.FC = () => {
           const url = event.payload as string;
           console.log('Processing OAuth callback URL:', url);
           
-          if (url.includes('com.fox5352.foxtrail_frontend://auth/callback')) {
+          if (url.includes('com.fox5352.foxtrail://auth/callback')) {
             setLoading('processing');
             
             try {
               // Extract the URL parameters
-              const urlObj = new URL(url.replace('com.fox5352.foxtrail_frontend://', 'https://dummy.com/'));
+              const urlObj = new URL(url.replace('com.fox5352.foxtrail://', 'https://dummy.com/'));
               const fragment = urlObj.hash.substring(1); // Remove the # symbol
               const params = new URLSearchParams(fragment);
               

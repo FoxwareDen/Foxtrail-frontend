@@ -13,7 +13,7 @@ export const AUTH_CONFIG = {
   },
   supabase: {
     url: 'https://fvlsvvzbywmozvhwxmzl.supabase.co',
-    redirectUri: 'com.fox5352.foxtrail_frontend://auth/callback'
+    redirectUri: 'com.fox5352.foxtrail://auth/callback'
   }
 }
 
@@ -22,6 +22,6 @@ export const debugAuthConfig = () => {
   console.log('=== AUTH CONFIG DEBUG ===')
   console.log('Android Client ID set:', !AUTH_CONFIG.google.androidClientId.includes('YOUR_'))
   console.log('Web Client ID set:', !AUTH_CONFIG.google.webClientId.includes('YOUR_'))
-  console.log('Package name:', 'com.fox5352.foxtrail_frontend')
+  console.log('Package name:', 'com.fox5352.foxtrail')
   console.log('=== END DEBUG ===')
 }

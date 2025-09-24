@@ -1,4 +1,4 @@
-package com.fox5352.foxtrail_frontend
+package com.fox5352.foxtrail
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

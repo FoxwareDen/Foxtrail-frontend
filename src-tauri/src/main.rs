@@ -14,7 +14,7 @@ pub fn main() {
                     if let Some(payload) = event.payload() {
                         if let Ok(intent_data) = serde_json::from_str::<serde_json::Value>(payload) {
                             if let Some(url) = intent_data.get("url").and_then(|u| u.as_str()) {
-                                if url.starts_with("com.fox5352.foxtrail_frontend://") {
+                                if url.starts_with("com.fox5352.foxtrail://") {
                                     let _ = handle.emit("deep-link", url);
                                 }
                             }
@@ -30,7 +30,7 @@ pub fn main() {
                     if let Some(payload) = event.payload() {
                         if let Ok(url_data) = serde_json::from_str::<serde_json::Value>(payload) {
                             if let Some(url) = url_data.get("url").and_then(|u| u.as_str()) {
-                                if url.starts_with("com.fox5352.foxtrail_frontend://") {
+                                if url.starts_with("com.fox5352.foxtrail://") {
                                     let _ = handle.emit("deep-link", url);
                                 }
                             }

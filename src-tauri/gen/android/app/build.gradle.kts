@@ -15,10 +15,10 @@ val tauriProperties = Properties().apply {
 
 android {
     compileSdk = 36
-    namespace = "com.fox5352.foxtrail_frontend"
+    namespace = "com.fox5352.foxtrail"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "com.fox5352.foxtrail_frontend"
+        applicationId = "com.fox5352.foxtrail"
         minSdk = 24
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()

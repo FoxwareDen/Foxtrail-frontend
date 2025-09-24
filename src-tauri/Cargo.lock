@@ -1044,7 +1044,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "foxtrail-frontend"
+name = "foxtrail"
 version = "0.1.0"
 dependencies = [
  "serde_json",
