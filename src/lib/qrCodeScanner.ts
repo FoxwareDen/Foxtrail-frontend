@@ -37,24 +37,23 @@ export let isScanning = false;
 export async function scanQrCode<T>() {
     const checkPerm = await checkPermissions();
 
-    //
-    // if (checkPerm === "prompt") {
-    //     await requestPermissions();
-    // }
-    //
-    // if (checkPerm === "denied") {
-    //     await requestPermissions();
-    //     return;
-    // }
-    //
-    // isScanning = true;
-    // const scanData = await scan({
-    //     windowed: true,
-    //     formats: [Format.QRCode],
-    //     cameraDirection: "back",
-    // });
-    //
-    // return scanData as T;
+    if (checkPerm === "prompt") {
+        await requestPermissions();
+    }
+
+    if (checkPerm === "denied") {
+        await requestPermissions();
+        return;
+    }
+
+    isScanning = true;
+    const scanData = await scan({
+        windowed: true,
+        formats: [Format.QRCode],
+        cameraDirection: "back",
+    });
+
+    return scanData as T;
 }
 
 /**

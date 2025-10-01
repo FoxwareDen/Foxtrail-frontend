@@ -1,4 +1,3 @@
-
 // #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn main() {
     foxtrail_lib::run();
@@ -38,7 +37,7 @@ pub fn main() {
     //                                 let _ = handle.emit("deep-link", url);
     //                             }
     //                         }
-    //                     }    
+    //                     }
     //                 }
     //             });
     //         }
