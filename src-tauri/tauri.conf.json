@@ -28,8 +28,7 @@
     },
     "shell": {
       "open": true
-    },
-    "barcode-scanner": {}
+    }
   },
   "bundle": {
     "active": true,

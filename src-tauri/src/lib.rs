@@ -1,4 +1,4 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+// Learn more abouat Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
@@ -12,13 +12,14 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init()) // Add this line
         .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_barcode_scanner::init())
         .invoke_handler(tauri::generate_handler![greet])
         .setup(|_app| {
-            #[cfg(mobile)]
-            {
-                let handle = _app.handle().clone();
-                handle.plugin(tauri_plugin_barcode_scanner::init());
-            }
+            // #[cfg(mobile)]
+            // {
+            //     let handle = _app.handle().clone();
+            //     handle.plugin(tauri_plugin_barcode_scanner::init());
+            // }
 
             Ok(())
         })
