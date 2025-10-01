@@ -1,4 +1,4 @@
-import { cancel, scan, Format, requestPermissions, checkPermissions } from "@tauri-apps/plugin-barcode-scanner"
+import { cancel, scan, Format, requestPermissions, checkPermissions, Scanned } from "@tauri-apps/plugin-barcode-scanner"
 
 /**
  * Indicates whether a QR code scanning session is currently active.
@@ -50,6 +50,37 @@ export async function getScanPerm() {
 
 
     return true;
+}
+
+export interface ScanResult<T> {
+    raw: string;
+    payload: T | null;
+}
+
+export async function startScan<T>(formats: Format[] = [Format.QRCode], cameraDirection: 'front' | 'back' = 'back', videoElementId: string = 'scanner-video'): Promise<ScanResult<T> | null> {
+
+    if (isScanning) {
+        console.warn('Scan in progress, please wait...')
+        return null
+    }
+
+    isScanning = true;
+
+    const scanData = await scan({
+        windowed: false, // <- embed the camera in DOM
+        formats,
+        cameraDirection,
+        videoElementId, // <- ID of container where video will render
+    });
+
+    isScanning = false;
+
+    const payload: T | null = JSON.parse(scanData.content) as T | null;
+
+    return {
+        raw: scanData.content,
+        payload
+    }
 }
 
 /**
