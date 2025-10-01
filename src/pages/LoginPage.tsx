@@ -3,9 +3,9 @@ import logoTextImage from "../../public/FoxTrail.png";
 import logoImage from "../../public/logo.png";
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { platform } from '@tauri-apps/plugin-os';
 import { listen } from '@tauri-apps/api/event';
 import { cancelScan, getScanPerm, isScanning, startScan } from '../lib/qrCodeScanner';
+import { getPlatform } from '../lib/utils';
 
 const LoginPage: React.FC = () => {
   const [scanning, setScanning] = useState(false);
@@ -20,7 +20,7 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     const checkPlatform = async () => {
       try {
-        const platformName = await platform();
+        const platformName = getPlatform();
         setIsMobile(platformName === 'android' || platformName === 'ios');
       } catch (error) {
         console.error('Platform detection failed:', error);
