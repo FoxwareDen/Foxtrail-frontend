@@ -102,6 +102,7 @@ const LoginPage: React.FC = () => {
       setScanning(false);
 
       console.log("Scan result:", scanData);
+      alert(scanData)
     } catch (err) {
       console.error("QR scan failed", err);
       setScanning(false);
@@ -117,8 +118,9 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-[#2b303a] flex flex-col justify-between relative">
       {scanning && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black bg-opacity-50">
-          {/* Camera container */}
+          {/* TODO: this is the camrea window component */}
           <div id="scanner-video" className="w-64 h-64 border-4 border-white rounded-lg" />
+          {/* FIX:Camera container */}
           <button onClick={handleCancelScan} className="mt-6 px-6 py-3 bg-red-500 text-white rounded-lg text-lg">
             Cancel Scan
           </button>
