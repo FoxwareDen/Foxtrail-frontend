@@ -18,6 +18,10 @@
     "barcode-scanner:allow-request-permissions",
     "barcode-scanner:allow-scan",
     "barcode-scanner:allow-vibrate",
-    "barcode-scanner:default"
+    "barcode-scanner:default",
+    "barcode-scanner:default",
+    "barcode-scanner:default",
+    "barcode-scanner:allow-scan",
+    "barcode-scanner:allow-cancel"
   ]
 }
