@@ -15,7 +15,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![greet])
         .setup(|_app| {
             #[cfg(mobile)]
-            _app.handle().plugin(tauri_plugin_barcode_scanner::init());
+            {
+                let handle = _app.handle().clone();
+                handle.plugin(tauri_plugin_barcode_scanner::init());
+            }
 
             Ok(())
         })
