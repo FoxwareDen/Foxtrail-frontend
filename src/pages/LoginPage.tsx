@@ -6,6 +6,7 @@ import { Navigate } from 'react-router-dom';
 import { listen } from '@tauri-apps/api/event';
 import { cancelScan, getScanPerm, isScanning, startScan } from '../lib/qrCodeScanner';
 import { getPlatform } from '../lib/utils';
+import { setSessionData, signInWithCode, supabase } from '../lib/supabaseClient';
 
 const LoginPage: React.FC = () => {
   const [scanning, setScanning] = useState(false);
@@ -96,9 +97,19 @@ const LoginPage: React.FC = () => {
       const result = await getScanPerm();
       if (!result) return;
 
-      const scanData = await startScan();
+      const scanData = await startScan<{ id: number; code: number } | null>();
 
       console.log("Scan result:", scanData);
+
+      if (getPlatform() != 'web' && scanData?.payload) {
+
+        const test = await signInWithCode(scanData.payload.id, scanData.payload.code)
+
+        if (test) {
+          alert("Sign in successful");
+          console.log(test)
+        }
+      }
     } catch (err) {
       console.error("QR scan failed", err);
     }
