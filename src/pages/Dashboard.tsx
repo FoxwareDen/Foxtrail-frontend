@@ -59,7 +59,6 @@ const Dashboard: React.FC = () => {
               >
                 {user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0]}
               </span>
-              <LogoutButton />
             </div>
           </div>
         </div>
