@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { Job } from '../lib/supabaseClient'
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 interface JobModalProps {
   job: Job
@@ -31,6 +32,22 @@ export const JobModal: React.FC<JobModalProps> = ({ job, onClose, onApply }) => 
     if (e.target === e.currentTarget) onClose()
   }
 
+  const handleApply = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    
+    if (job.redirect_url) {
+      // Open in new tab/window for better user experience
+      await openUrl(job.redirect_url)
+      
+      // Also call the onApply callback for tracking/analytics
+      onApply(job)
+      
+      // Optionally close the modal after a short delay
+      setTimeout(() => {
+        onClose()
+      }, 500)
+    }
+  }
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto"
@@ -168,7 +185,7 @@ export const JobModal: React.FC<JobModalProps> = ({ job, onClose, onApply }) => 
             <div className="flex flex-col sm:flex-row gap-3 sm:space-x-3">
               {job.redirect_url && (
                 <button
-                  onClick={() => onApply(job)}
+                  onClick={handleApply}
                   className="px-4 sm:px-6 py-2 text-white rounded-md hover:opacity-80 focus:ring-2 focus:outline-none text-sm sm:text-base"
                   style={{ backgroundColor: '#D64933' }}
                 >
