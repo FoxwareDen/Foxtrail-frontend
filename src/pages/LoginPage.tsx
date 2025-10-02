@@ -3,10 +3,10 @@ import logoTextImage from "../../public/FoxTrail.png";
 import logoImage from "../../public/logo.png";
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { platform } from '@tauri-apps/plugin-os';
 import { listen } from '@tauri-apps/api/event';
-import { getScanPerm } from '../lib/qrCodeScanner';
-import { Format, scan, cancel } from '@tauri-apps/plugin-barcode-scanner';
+import { cancelScan, getScanPerm, isScanning, startScan } from '../lib/qrCodeScanner';
+import { getPlatform } from '../lib/utils';
+import { setSessionData, signInWithCode, supabase } from '../lib/supabaseClient';
 
 const LoginPage: React.FC = () => {
   const [scanning, setScanning] = useState(false);
@@ -21,7 +21,7 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     const checkPlatform = async () => {
       try {
-        const platformName = await platform();
+        const platformName = getPlatform();
         setIsMobile(platformName === 'android' || platformName === 'ios');
       } catch (error) {
         console.error('Platform detection failed:', error);
@@ -30,6 +30,11 @@ const LoginPage: React.FC = () => {
     };
     checkPlatform();
   }, []);
+
+  // Update scanning state using the isScanning global state
+  useEffect(() => {
+    setScanning(isScanning);
+  }, [isScanning])
 
   useEffect(() => {
     if (!isMobile) return;
@@ -92,25 +97,26 @@ const LoginPage: React.FC = () => {
       const result = await getScanPerm();
       if (!result) return;
 
-      setScanning(true);
-      const scanData = await scan({
-        windowed: false, // <- embed the camera in DOM
-        formats: [Format.QRCode],
-        cameraDirection: "back",
-        videoElementId: "scanner-video", // <- ID of container where video will render
-      });
-      setScanning(false);
+      const scanData = await startScan<{ id: number; code: number } | null>();
 
       console.log("Scan result:", scanData);
-      alert(scanData)
+
+      if (getPlatform() != 'web' && scanData?.payload) {
+
+        const test = await signInWithCode(scanData.payload.id, scanData.payload.code)
+
+        if (test) {
+          alert("Sign in successful");
+          console.log(test)
+        }
+      }
     } catch (err) {
       console.error("QR scan failed", err);
-      setScanning(false);
     }
   };
 
   const handleCancelScan = async () => {
-    await cancel();
+    cancelScan();
     setScanning(false);
   };
 

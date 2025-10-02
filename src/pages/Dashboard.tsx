@@ -2,6 +2,8 @@ import React from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import LogoutButton from '../components/LogoutButton'
 import { useNavigate } from 'react-router-dom'
+import { QRBlock } from '../components/QRBlock'
+import { getPlatform } from '../lib/utils'
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth()
@@ -11,62 +13,62 @@ const Dashboard: React.FC = () => {
     // Navigate to job preferences page
     navigate("/job-preferences")
   }
-  const handleExploreNewJobs = () =>{
+  const handleExploreNewJobs = () => {
     navigate("/job-listings")
   }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#2B303A' }}>
-<nav className="shadow-lg" style={{ backgroundColor: '#1f242c' }}>
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="flex justify-between items-center h-16">
-      {/* Logo - always visible */}
-      <div className="flex-shrink-0">
-        <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#D64933' }}>
-          FoxTrail
-        </h1>
-      </div>
-      
-      {/* Desktop user info and logout */}
-      <div className="hidden sm:flex items-center space-x-4">
-        <span 
-          className="text-sm lg:text-base truncate max-w-xs lg:max-w-sm" 
-          style={{ color: '#eee5e9' }}
-          title={user?.user_metadata?.name || user?.email}
-        >
-          Welcome, {user?.user_metadata?.name || user?.email}
-        </span>
-        <LogoutButton />
-      </div>
-      
-      {/* Mobile user info and logout */}
-      <div className="flex sm:hidden items-center space-x-2">
-        <span 
-          className="text-xs truncate max-w-24" 
-          style={{ color: '#eee5e9' }}
-          title={user?.user_metadata?.name || user?.email}
-        >
-          {user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0]}
-        </span>
-        <LogoutButton />
-      </div>
-    </div>
-  </div>
-</nav>
-      
+      <nav className="shadow-lg" style={{ backgroundColor: '#1f242c' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo - always visible */}
+            <div className="flex-shrink-0">
+              <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#D64933' }}>
+                FoxTrail
+              </h1>
+            </div>
+
+            {/* Desktop user info and logout */}
+            <div className="hidden sm:flex items-center space-x-4">
+              <span
+                className="text-sm lg:text-base truncate max-w-xs lg:max-w-sm"
+                style={{ color: '#eee5e9' }}
+                title={user?.user_metadata?.name || user?.email}
+              >
+                Welcome, {user?.user_metadata?.name || user?.email}
+              </span>
+              <LogoutButton />
+            </div>
+
+            {/* Mobile user info and logout */}
+            <div className="flex sm:hidden items-center space-x-2">
+              <span
+                className="text-xs truncate max-w-24"
+                style={{ color: '#eee5e9' }}
+                title={user?.user_metadata?.name || user?.email}
+              >
+                {user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0]}
+              </span>
+              <LogoutButton />
+            </div>
+          </div>
+        </div>
+      </nav>
+
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {/* Main Dashboard Card */}
-          <div 
-            className="rounded-lg shadow-lg p-6 mb-6" 
+          <div
+            className="rounded-lg shadow-lg p-6 mb-6"
             style={{ backgroundColor: '#353b47' }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: '#eee5e9' }}>Dashboard</h2>
             <p className="mb-6" style={{ color: '#7c7c7c' }}>Welcome to your FoxTrail dashboard! Manage your job search and preferences.</p>
-            
+
             {/* Job Preferences Button */}
             <div className="mb-8">
-              <button 
+              <button
                 onClick={handleJobPreferences}
                 className="px-8 py-3 rounded-full text-lg font-medium transition-colors duration-200 hover:opacity-90"
                 style={{ backgroundColor: '#D64933', color: '#eee5e9' }}
@@ -76,8 +78,8 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* User Profile Section */}
-            <div 
-              className="rounded-lg p-6" 
+            <div
+              className="rounded-lg p-6"
               style={{ backgroundColor: '#3f4651' }}
             >
               <h3 className="text-xl font-semibold mb-4" style={{ color: '#eee5e9' }}>Your Profile</h3>
@@ -97,12 +99,17 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center justify-center md:justify-end">
+                  {/*  */}
+                  {
+                    getPlatform() == "web" && (<QRBlock />)
+                  }
+
                   {user?.user_metadata?.avatar_url && (
                     <div className="text-center">
                       <p className="text-sm mb-2" style={{ color: '#7c7c7c' }}>Profile Picture</p>
-                      <img 
-                        src={user.user_metadata.avatar_url} 
-                        alt="Profile" 
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        alt="Profile"
                         className="w-16 h-16 rounded-full border-2"
                         style={{ borderColor: '#D64933' }}
                       />
@@ -115,9 +122,9 @@ const Dashboard: React.FC = () => {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div 
+            <div
               className="rounded-lg p-6 transition-all duration-200 cursor-pointer hover:scale-105"
-              style={{ 
+              style={{
                 backgroundColor: '#353b47',
                 boxShadow: '0 4px 6px -1px rgba(214, 73, 51, 0.1)'
               }}
@@ -130,7 +137,7 @@ const Dashboard: React.FC = () => {
               }}
             >
               <div className="flex items-center mb-2">
-                <div 
+                <div
                   className="w-3 h-3 rounded-full mr-3"
                   style={{ backgroundColor: '#92DCE5' }}
                 ></div>
