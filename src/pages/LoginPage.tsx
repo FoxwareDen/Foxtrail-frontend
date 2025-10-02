@@ -1,27 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import logoTextImage from "../../public/FoxTrail.png";
 import logoImage from "../../public/logo.png";
 import { useAuth } from '../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
-import { listen } from '@tauri-apps/api/event';
-import { cancelScan, getScanPerm, isScanning, startScan } from '../lib/qrCodeScanner';
-import { getPlatform } from '../lib/utils';
-import { setSessionData, signInWithCode, supabase } from '../lib/supabaseClient';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { platform } from '@tauri-apps/plugin-os';
+import { scan, Format } from '@tauri-apps/plugin-barcode-scanner';
+import { supabase } from '../lib/supabaseClient';
 
 const LoginPage: React.FC = () => {
-  const [scanning, setScanning] = useState(false);
-
-  const { user, signInWithGoogle, signInWithGoogleSDK } = useAuth();
+  const { user, signInWithGoogle, signInWithLinkedIn } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError ] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-
-  const LINKEDIN_OAUTH_URL = `https://fvlsvvzbywmozvhwxmzl.supabase.co/auth/v1/authorize?provider=linkedin_oidc&redirect_to=${encodeURIComponent('com.fox5352.foxtrail://auth/callback')}`;
+  const [scanning, setScanning] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkPlatform = async () => {
       try {
-        const platformName = getPlatform();
+        const platformName = await platform(); 
         setIsMobile(platformName === 'android' || platformName === 'ios');
       } catch (error) {
         console.error('Platform detection failed:', error);
@@ -31,137 +28,284 @@ const LoginPage: React.FC = () => {
     checkPlatform();
   }, []);
 
-  // Update scanning state using the isScanning global state
+  // Redirect if user is logged in (QR scan will handle auth automatically)
   useEffect(() => {
-    setScanning(isScanning);
-  }, [isScanning])
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
-  useEffect(() => {
-    if (!isMobile) return;
+  // Redirect if user is already logged in
+  if(user){
+    return <Navigate to="/dashboard" replace/>
+  }
 
-    let unlisten: (() => void) | undefined;
-    const setupListener = async () => {
-      try {
-        unlisten = await listen('deep-link', async (event) => {
-          const url = event.payload as string;
-          if (url.includes('com.fox5352.foxtrail://auth/callback')) {
-            setLoading('processing');
-            try {
-              const urlObj = new URL(url.replace('com.fox5352.foxtrail://', 'https://dummy.com/'));
-              const fragment = urlObj.hash.substring(1);
-              const params = new URLSearchParams(fragment);
+  const handleQRScan = async (): Promise<void> => {
+    try {
+      setScanning(true);
+      setError(null);
+      setLoading('qr-scan');
 
-              if (params.has('error')) {
-                setError(params.get('error_description') || params.get('error') || 'OAuth failed');
-                return;
-              }
+      // Scan the QR code
+      const result = await scan({
+        formats: [Format.QRCode],
+        windowed: false,
+      });
 
-              const accessToken = params.get('access_token');
-              if (accessToken) window.location.href = '/dashboard';
-              else setError('No access token received');
-            } catch (err) {
-              console.error('Error processing OAuth callback:', err);
-              setError('Failed to process OAuth response');
-            } finally {
-              setLoading(null);
-            }
-          }
+      if (result.content) {
+        console.log('QR Code scanned:', result.content);
+        
+        // Parse QR code data
+        const parsedData = JSON.parse(result.content);
+        const { token } = parsedData;
+
+        if (!token) {
+          throw new Error('Invalid QR code format');
+        }
+
+        console.log('Validating QR session...');
+
+        // Validate and retrieve auth data from the QR session
+        const { data: qrSession, error: sessionError } = await supabase
+          .from('qr_auth_sessions')
+          .select('auth_token, desktop_user_id, expires_at, mobile_device_authenticated')
+          .eq('session_token', token)
+          .eq('mobile_device_authenticated', false)
+          .single();
+
+        if (sessionError || !qrSession) {
+          throw new Error('Invalid or expired QR code');
+        }
+
+        // Check if session is expired
+        if (new Date(qrSession.expires_at) < new Date()) {
+          throw new Error('QR code has expired. Please generate a new one on desktop.');
+        }
+
+        console.log('QR session valid, authenticating...');
+
+        // Use the refresh token to create a NEW independent session on mobile
+        // This ensures mobile has its own session that won't affect desktop
+        const { data: authData, error: authError } = await supabase.auth.refreshSession({
+          refresh_token: qrSession.auth_token
         });
-      } catch (err) {
-        console.error('Failed to set up OAuth listener:', err);
+
+        if (authError || !authData.session) {
+          console.error('Auth error:', authError);
+          throw new Error('Failed to create mobile session. The QR code may have expired.');
+        }
+
+        console.log('Successfully created independent mobile session!');
+        console.log('Mobile session user:', authData.user?.email);
+
+        // Mark the QR session as used
+        await supabase
+          .from('qr_auth_sessions')
+          .update({ 
+            mobile_device_authenticated: true,
+            used_at: new Date().toISOString()
+          })
+          .eq('session_token', token);
+
+        console.log('QR session marked as used');
+
+        // Mark this session as coming from QR code for proper logout handling
+        localStorage.setItem('session_source', 'qr_code');
+
+        // The auth state will be updated automatically by the AuthContext listener
+        // Just wait a moment for it to propagate
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Navigate to dashboard
+        navigate('/dashboard');
       }
-    };
-
-    setupListener();
-    return () => { if (unlisten) unlisten(); };
-  }, [isMobile]);
-
-  if (user) return <Navigate to="/dashboard" replace />;
+    } catch (err) {
+      console.error('Error scanning QR code:', err);
+      setError(err instanceof Error ? err.message : 'Failed to scan QR code. Please try again.');
+    } finally {
+      setScanning(false);
+      setLoading(null);
+    }
+  };
 
   const handleGoogleSignIn = async (): Promise<void> => {
     try {
       setLoading('google');
       setError(null);
-      if (isMobile) await signInWithGoogleSDK();
-      else await signInWithGoogle();
+      
+      // Mark this as a regular OAuth login (not QR)
+      localStorage.setItem('session_source', 'oauth');
+      
+      await signInWithGoogle();
       setLoading(null);
     } catch (error) {
       console.error('Login error:', error);
-      setError('Error signing in with Google.');
+      setError('Error signing in with Google. Please try again.');
       setLoading(null);
     }
   };
 
-  const handleLinkedInSignIn = async (): Promise<void> => {
-    try {
-      const result = await getScanPerm();
-      if (!result) return;
-
-      const scanData = await startScan<{ id: number; code: number } | null>();
-
-      console.log("Scan result:", scanData);
-
-      if (getPlatform() != 'web' && scanData?.payload) {
-
-        const test = await signInWithCode(scanData.payload.id, scanData.payload.code)
-
-        if (test) {
-          alert("Sign in successful");
-          console.log(test)
-        }
-      }
-    } catch (err) {
-      console.error("QR scan failed", err);
+  const handleLinkedInSignIn = async (): Promise<void> =>{
+    try{
+      setLoading('linkedIn')
+      setError(null)
+      
+      // Mark this as a regular OAuth login (not QR)
+      localStorage.setItem('session_source', 'oauth');
+      
+      await signInWithLinkedIn()
+      setLoading(null);
+    }catch(error){
+      console.error('Login error:', error)
+      setError('Error signing in with LinkedIn. Please try again.')
+      setLoading(null);
     }
-  };
-
-  const handleCancelScan = async () => {
-    cancelScan();
-    setScanning(false);
-  };
-
+  }
+  
   return (
-    <div className="min-h-screen bg-[#2b303a] flex flex-col justify-between relative">
-      {scanning && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black bg-opacity-50">
-          {/* TODO: this is the camrea window component */}
-          <div id="scanner-video" className="w-64 h-64 border-4 border-white rounded-lg" />
-          {/* FIX:Camera container */}
-          <button onClick={handleCancelScan} className="mt-6 px-6 py-3 bg-red-500 text-white rounded-lg text-lg">
-            Cancel Scan
-          </button>
-        </div>
-      )}
-
-      {/* Header */}
+    <div className="min-h-screen bg-[#2b303a] flex flex-col justify-between">
+      {/* Header with Logo */}
       <div className="flex-1 flex items-start">
-        <img src={logoTextImage} alt="LogoText" className="w-40 h-12 py-2 px-4 ml-6 mt-4" />
+        <img src={logoTextImage} alt="LogoText" className= "w-40 h-12 py-2 px-4 ml-6 mt-4"></img>
       </div>
 
-      {/* Center content */}
-      <div className="flex-1 flex flex-col items-center justify-center space-y-8">
-        <img src={logoImage} alt="Logo" className='w-20 h-20 rounded-full border-none mt-12' />
-        <div className="text-center mb-12">
+      {/* Center Content */}
+      <div className="flex-1 flex flex-col items-center justify-center space-y-8 px-4">
+        {/* Fox Logo */}
+        <img src={logoImage} alt="Logo" className='w-20 h-20 rounded-full border-none mt-12'/>
+        
+        {/* Tagline */}
+        <div className="text-center mb-8">
           <h2 className="text-4xl font-bold text-white leading-tight">
-            Never miss your<br />dream job.
+            Never miss your<br />
+            dream job.
           </h2>
         </div>
 
-        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
-        {loading === 'processing' && <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">Processing OAuth response...</div>}
+        {error && (
+          <div className={`${
+            error.includes('verified') ? 'bg-blue-100 border-blue-400 text-blue-700' : 'bg-red-100 border-red-400 text-red-700'
+          } border px-4 py-3 rounded max-w-sm w-full`}>
+            {error}
+          </div>
+        )}
 
-        {/* Buttons */}
-        <div className="w-full max-w-sm space-y-4">
-          <button onClick={handleGoogleSignIn} disabled={loading === 'google' || loading === 'processing'}
-            className="w-full bg-transparent border-2 border-[#92dce5] text-white py-4 px-6 rounded-full flex items-center justify-center space-x-3 hover:bg-[#92dce5] hover:bg-opacity-10 transition-colors disabled:opacity-50">
-            Continue with Google
-          </button>
+        {/* Mobile: QR Scanner */}
+        {isMobile ? (
+          <div className="w-full max-w-sm space-y-6">
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Scan to Login
+              </h3>
+              <p className="text-gray-400 text-sm">
+                Scan the QR code from your desktop to login
+              </p>
+            </div>
 
-          <button onClick={handleLinkedInSignIn} className="w-full bg-transparent border-2 border-[#92dce5] text-white py-4 px-6 rounded-full flex items-center justify-center space-x-3 hover:bg-[#92dce5] hover:bg-opacity-10 transition-colors disabled:opacity-50">
-            Continue with LinkedIn
+            <button
+              onClick={handleQRScan}
+              disabled={scanning || loading === 'qr-scan'}
+              className="w-full bg-transparent border-2 border-[#92dce5] text-white py-4 px-6 rounded-full flex items-center justify-center space-x-3 hover:bg-[#92dce5] hover:bg-opacity-10 transition-colors disabled:opacity-50"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                />
+              </svg>
+              <span className="text-lg font-medium">
+                {scanning || loading === 'qr-scan' ? 'Authenticating...' : 'Scan QR Code'}
+              </span>
+            </button>
+
+            {/* Or Divider */}
+            <div className="flex items-center w-full my-6">
+              <div className="flex-1 h-px bg-[#d64933]"></div>
+              <span className="px-2 text-[#d64933] font-medium text-lg">or login with</span>
+              <div className="flex-1 h-px bg-[#d64933]"></div>
+            </div>
+
+            {/* Login Buttons for Mobile (if they want to login directly) */}
+            <div className="space-y-4">
+              <button 
+                onClick={handleGoogleSignIn}
+                disabled={loading === 'google'}
+                className="w-full bg-transparent border-2 border-[#92dce5] text-white py-3 px-6 rounded-full flex items-center justify-center space-x-3 hover:bg-[#92dce5] hover:bg-opacity-10 transition-colors disabled:opacity-50"
+              >
+                <div className="w-6 h-6 bg-transparent rounded-full flex items-center justify-center">
+                  <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M30.0014 16.3109C30.0014 15.1598 29.9061 14.3198 29.6998 13.4487H16.2871V18.6442H24.1601C24.0014 19.9354 23.1442 21.8798 21.2394 23.1864L21.2127 23.3604L25.4536 26.58L25.7474 26.6087C28.4458 24.1665 30.0014 20.5731 30.0014 16.3109Z" fill="#4285F4"></path> <path d="M16.2863 29.9998C20.1434 29.9998 23.3814 28.7553 25.7466 26.6086L21.2386 23.1863C20.0323 24.0108 18.4132 24.5863 16.2863 24.5863C12.5086 24.5863 9.30225 22.1441 8.15929 18.7686L7.99176 18.7825L3.58208 22.127L3.52441 22.2841C5.87359 26.8574 10.699 29.9998 16.2863 29.9998Z" fill="#34A853"></path> <path d="M8.15964 18.769C7.85806 17.8979 7.68352 16.9645 7.68352 16.0001C7.68352 15.0356 7.85806 14.1023 8.14377 13.2312L8.13578 13.0456L3.67083 9.64746L3.52475 9.71556C2.55654 11.6134 2.00098 13.7445 2.00098 16.0001C2.00098 18.2556 2.55654 20.3867 3.52475 22.2845L8.15964 18.769Z" fill="#FBBC05"></path>               <path d="M16.2864 7.4133C18.9689 7.4133 20.7784 8.54885 21.8102 9.4978L25.8419 5.64C23.3658 3.38445 20.1435 2 16.2864 2C10.699 2 5.8736 5.1422 3.52441 9.71549L8.14345 13.2311C9.30229 9.85555 12.5086 7.4133 16.2864 7.4133Z" fill="#EB4335"></path> </g></svg>
+                </div>
+                <span className="text-base font-medium">Google</span>
+              </button>
+
+              <button
+                onClick={handleLinkedInSignIn}
+                disabled={loading === 'linkedIn'}
+                className="w-full bg-transparent border-2 border-[#92dce5] text-white py-3 px-6 rounded-full flex items-center justify-center space-x-3 hover:bg-[#92dce5] hover:bg-opacity-10 transition-colors disabled:opacity-50"
+              >
+                <div className="w-6 h-6 bg-transparent rounded flex items-center justify-center">
+                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <circle cx="24" cy="24" r="20" fill="#0077B5"></circle> <path fillRule="evenodd" clipRule="evenodd" d="M18.7747 14.2839C18.7747 15.529 17.8267 16.5366 16.3442 16.5366C14.9194 16.5366 13.9713 15.529 14.0007 14.2839C13.9713 12.9783 14.9193 12 16.3726 12C17.8267 12 18.7463 12.9783 18.7747 14.2839ZM14.1199 32.8191V18.3162H18.6271V32.8181H14.1199V32.8191Z" fill="white"></path> <path fillRule="evenodd" clipRule="evenodd" d="M22.2393 22.9446C22.2393 21.1357 22.1797 19.5935 22.1201 18.3182H26.0351L26.2432 20.305H26.3322C26.9254 19.3854 28.4079 17.9927 30.8101 17.9927C33.7752 17.9927 35.9995 19.9502 35.9995 24.219V32.821H31.4922V24.7838C31.4922 22.9144 30.8404 21.6399 29.2093 21.6399C27.9633 21.6399 27.2224 22.4999 26.9263 23.3297C26.8071 23.6268 26.7484 24.0412 26.7484 24.4574V32.821H22.2411V22.9446H22.2393Z" fill="white"></path> </g></svg>
+                </div>
+                <span className="text-base font-medium">LinkedIn</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          // Desktop: Regular Login Buttons
+          <div className="w-full max-w-sm space-y-4">
+            {/* Google Login Button */}
+            <button 
+              onClick={handleGoogleSignIn}
+              disabled={loading === 'google'}
+              className="w-full bg-transparent border-2 border-[#92dce5] text-white py-4 px-6 rounded-full flex items-center justify-center space-x-3 hover:bg-[#92dce5] hover:bg-opacity-10 transition-colors disabled:opacity-50"
+            >
+              <div className="w-6 h-6 bg-transparent rounded-full flex items-center justify-center">
+                <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M30.0014 16.3109C30.0014 15.1598 29.9061 14.3198 29.6998 13.4487H16.2871V18.6442H24.1601C24.0014 19.9354 23.1442 21.8798 21.2394 23.1864L21.2127 23.3604L25.4536 26.58L25.7474 26.6087C28.4458 24.1665 30.0014 20.5731 30.0014 16.3109Z" fill="#4285F4"></path> <path d="M16.2863 29.9998C20.1434 29.9998 23.3814 28.7553 25.7466 26.6086L21.2386 23.1863C20.0323 24.0108 18.4132 24.5863 16.2863 24.5863C12.5086 24.5863 9.30225 22.1441 8.15929 18.7686L7.99176 18.7825L3.58208 22.127L3.52441 22.2841C5.87359 26.8574 10.699 29.9998 16.2863 29.9998Z" fill="#34A853"></path> <path d="M8.15964 18.769C7.85806 17.8979 7.68352 16.9645 7.68352 16.0001C7.68352 15.0356 7.85806 14.1023 8.14377 13.2312L8.13578 13.0456L3.67083 9.64746L3.52475 9.71556C2.55654 11.6134 2.00098 13.7445 2.00098 16.0001C2.00098 18.2556 2.55654 20.3867 3.52475 22.2845L8.15964 18.769Z" fill="#FBBC05"></path> <path d="M16.2864 7.4133C18.9689 7.4133 20.7784 8.54885 21.8102 9.4978L25.8419 5.64C23.3658 3.38445 20.1435 2 16.2864 2C10.699 2 5.8736 5.1422 3.52441 9.71549L8.14345 13.2311C9.30229 9.85555 12.5086 7.4133 16.2864 7.4133Z" fill="#EB4335"></path> </g></svg>
+              </div>
+              <span className="text-lg font-medium pt-2">
+                {loading === 'google' ? 'Opening...' : 'Continue with Google'}
+              </span>
+            </button>
+
+            {/* LinkedIn Login Button */}
+            <button
+              onClick={handleLinkedInSignIn}
+              disabled={loading === 'linkedIn'}
+              className="w-full bg-transparent border-2 border-[#92dce5] text-white py-4 px-6 rounded-full flex items-center justify-center space-x-3 hover:bg-[#92dce5] hover:bg-opacity-10 transition-colors disabled:opacity-50"
+            >
+              <div className="w-8 h-8 bg-transparent rounded flex items-center justify-center">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <circle cx="24" cy="24" r="20" fill="#0077B5"></circle> <path fillRule="evenodd" clipRule="evenodd" d="M18.7747 14.2839C18.7747 15.529 17.8267 16.5366 16.3442 16.5366C14.9194 16.5366 13.9713 15.529 14.0007 14.2839C13.9713 12.9783 14.9193 12 16.3726 12C17.8267 12 18.7463 12.9783 18.7747 14.2839ZM14.1199 32.8191V18.3162H18.6271V32.8181H14.1199V32.8191Z" fill="white"></path> <path fillRule="evenodd" clipRule="evenodd" d="M22.2393 22.9446C22.2393 21.1357 22.1797 19.5935 22.1201 18.3182H26.0351L26.2432 20.305H26.3322C26.9254 19.3854 28.4079 17.9927 30.8101 17.9927C33.7752 17.9927 35.9995 19.9502 35.9995 24.219V32.821H31.4922V24.7838C31.4922 22.9144 30.8404 21.6399 29.2093 21.6399C27.9633 21.6399 27.2224 22.4999 26.9263 23.3297C26.8071 23.6268 26.7484 24.0412 26.7484 24.4574V32.821H22.2411V22.9446H22.2393Z" fill="white"></path> </g></svg>
+              </div>
+              <span className="text-lg font-medium pt-2">
+                {loading === 'linkedIn' ? 'Opening...' : 'Continue with LinkedIn'}
+              </span>
+            </button>
+
+            {/* Or Divider */}
+            <div className="flex items-center w-full my-6">
+              <div className="flex-1 h-px bg-[#d64933]"></div>
+              <span className="px-2 text-[#d64933] font-medium text-lg">or</span>
+              <div className="flex-1 h-px bg-[#d64933]"></div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      {!isMobile && (
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <button className="text-5xl font-bold text-[#d64933] hover:text-orange-400 transition-colors pb-10">
+            Log in
           </button>
         </div>
-      </div>
+      )}
     </div>
   );
 };
