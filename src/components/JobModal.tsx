@@ -1,4 +1,3 @@
-// src/components/JobModal.tsx
 import React, { useEffect } from 'react'
 import { Job } from '../lib/supabaseClient'
 
@@ -9,62 +8,56 @@ interface JobModalProps {
 }
 
 export const JobModal: React.FC<JobModalProps> = ({ job, onClose, onApply }) => {
-  // Close modal on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
-    
     document.addEventListener('keydown', handleEscape)
-    document.body.style.overflow = 'hidden' // Prevent background scrolling
-    
+    document.body.style.overflow = 'hidden'
     return () => {
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = 'unset'
     }
   }, [onClose])
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     })
-  }
 
   const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose()
-    }
+    if (e.target === e.currentTarget) onClose()
   }
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 overflow-y-auto"
       onClick={handleBackdropClick}
     >
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-70 transition-opacity" />
-      
+      {/* Backdrop with blur */}
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity" />
+
       {/* Modal */}
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div 
-          className="relative rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      <div className="flex min-h-screen items-center justify-center p-2 sm:p-6">
+        <div
+          className="relative rounded-lg shadow-xl w-full max-w-lg sm:max-w-4xl max-h-[90vh] overflow-y-auto"
           style={{ backgroundColor: '#2b303a' }}
         >
           {/* Header */}
-          <div 
-            className="sticky top-0 border-b px-6 py-4 flex justify-between items-start rounded-t-lg"
-            style={{ 
-              backgroundColor: '#2b303a', 
-              borderBottomColor: '#717171' 
+          <div
+            className="sticky top-0 border-b px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-start rounded-t-lg"
+            style={{
+              backgroundColor: '#2b303a',
+              borderBottomColor: '#717171'
             }}
           >
             <div className="flex-1 pr-4">
-              <h2 className="text-2xl font-bold mb-1" style={{ color: '#eee5e9' }}>
+              <h2 className="text-lg sm:text-2xl font-bold mb-1" style={{ color: '#eee5e9' }}>
                 {job.title}
               </h2>
-              <p className="text-xl font-semibold" style={{ color: '#D64933' }}>
+              <p className="text-base sm:text-xl font-semibold" style={{ color: '#D64933' }}>
                 {job.company}
               </p>
             </div>
@@ -78,41 +71,38 @@ export const JobModal: React.FC<JobModalProps> = ({ job, onClose, onApply }) => 
           </div>
 
           {/* Content */}
-          <div className="px-6 py-6">
+          <div className="px-4 sm:px-6 py-4 sm:py-6">
             {/* Job Meta Information */}
-            <div 
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 rounded-lg"
+            <div
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 p-3 sm:p-4 rounded-lg"
               style={{ backgroundColor: '#92DCE5' }}
             >
               {job.location && (
                 <div>
-                  <p className="text-sm font-medium" style={{ color: '#7c7c7c' }}>Location</p>
-                  <p className="flex items-center" style={{ color: '#2b303a' }}>
+                  <p className="text-xs sm:text-sm font-medium" style={{ color: '#7c7c7c' }}>Location</p>
+                  <p className="flex items-center text-sm sm:text-base" style={{ color: '#2b303a' }}>
                     <span className="mr-2">📍</span>
                     {job.location}
                   </p>
                 </div>
               )}
-              
+
               {job.category && (
                 <div>
-                  <p className="text-sm font-medium" style={{ color: '#7c7c7c' }}>Category</p>
-                  <p className="flex items-center" style={{ color: '#2b303a' }}>
+                  <p className="text-xs sm:text-sm font-medium" style={{ color: '#7c7c7c' }}>Category</p>
+                  <p className="flex items-center text-sm sm:text-base" style={{ color: '#2b303a' }}>
                     <span className="mr-2">🏷️</span>
                     {job.category}
                   </p>
                 </div>
               )}
-              
+
               {job.contract && (
                 <div>
-                  <p className="text-sm font-medium" style={{ color: '#7c7c7c' }}>Contract Type</p>
-                  <span 
-                    className="inline-block text-sm font-medium px-3 py-1 rounded-full mt-1"
-                    style={{ 
-                      backgroundColor: '#92DCE5', 
-                      color: '#2b303a' 
-                    }}
+                  <p className="text-xs sm:text-sm font-medium" style={{ color: '#7c7c7c' }}>Contract Type</p>
+                  <span
+                    className="inline-block text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-full mt-1"
+                    style={{ backgroundColor: '#92DCE5', color: '#2b303a' }}
                   >
                     {job.contract}
                   </span>
@@ -123,10 +113,10 @@ export const JobModal: React.FC<JobModalProps> = ({ job, onClose, onApply }) => 
             {/* Job Description */}
             {job.description && (
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3" style={{ color: '#eee5e9' }}>
+                <h3 className="text-base sm:text-lg font-semibold mb-3" style={{ color: '#eee5e9' }}>
                   Job Description
                 </h3>
-                <div className="prose max-w-none" style={{ color: '#717171' }}>
+                <div className="prose max-w-none text-sm sm:text-base" style={{ color: '#717171' }}>
                   {job.description.split('\n').map((paragraph, index) => (
                     <p key={index} className="mb-3">
                       {paragraph}
@@ -137,14 +127,14 @@ export const JobModal: React.FC<JobModalProps> = ({ job, onClose, onApply }) => 
             )}
 
             {/* Additional Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 text-xs sm:text-sm">
               <div>
                 <p style={{ color: '#7c7c7c' }}>Posted Date</p>
                 <p className="font-medium" style={{ color: '#eee5e9' }}>
                   {job.listing_created_at ? formatDate(job.listing_created_at) : formatDate(job.created_at)}
                 </p>
               </div>
-              
+
               {job.api_id && (
                 <div>
                   <p style={{ color: '#7c7c7c' }}>Reference ID</p>
@@ -157,51 +147,43 @@ export const JobModal: React.FC<JobModalProps> = ({ job, onClose, onApply }) => 
           </div>
 
           {/* Footer */}
-          <div 
-            className="sticky bottom-0 border-t px-6 py-4 flex justify-between items-center rounded-b-lg"
-            style={{ 
-              backgroundColor: '#2b303a', 
-              borderTopColor: '#717171' 
+          <div
+            className="sticky bottom-0 border-t px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center rounded-b-lg"
+            style={{
+              backgroundColor: '#2b303a',
+              borderTopColor: '#717171'
             }}
           >
             <button
               onClick={onClose}
-              className="px-6 py-2 border rounded-md hover:opacity-80 focus:ring-2 focus:outline-none"
-              style={{ 
+              className="px-4 sm:px-6 py-2 border rounded-md hover:opacity-80 focus:ring-2 focus:outline-none text-sm sm:text-base"
+              style={{
                 borderColor: '#717171',
-                color: '#eee5e9',
+                color: '#eee5e9'
               }}
             >
               Close
             </button>
-            
-            <div className="flex space-x-3">
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:space-x-3">
               {job.redirect_url && (
                 <button
                   onClick={() => onApply(job)}
-                  className="px-6 py-2 text-white rounded-md hover:opacity-80 focus:ring-2 focus:outline-none"
-                  style={{ 
-                    backgroundColor: '#D64933',
-                    
-                  }}
+                  className="px-4 sm:px-6 py-2 text-white rounded-md hover:opacity-80 focus:ring-2 focus:outline-none text-sm sm:text-base"
+                  style={{ backgroundColor: '#D64933' }}
                 >
                   Apply Now
                 </button>
               )}
-              
+
               <button
                 onClick={() => {
-                  // Copy job URL or details to clipboard
                   navigator.clipboard.writeText(
                     `${job.title} at ${job.company}\n${job.redirect_url || ''}`
                   )
                 }}
-                className="px-6 py-2 rounded-md hover:opacity-80 focus:ring-2 focus:outline-none"
-                style={{ 
-                  backgroundColor: '#92DCE5',
-                  color: '#2b303a',
-                  
-                }}
+                className="px-4 sm:px-6 py-2 rounded-md hover:opacity-80 focus:ring-2 focus:outline-none text-sm sm:text-base"
+                style={{ backgroundColor: '#92DCE5', color: '#2b303a' }}
               >
                 Share Job
               </button>

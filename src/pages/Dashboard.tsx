@@ -85,69 +85,53 @@ const Dashboard: React.FC = () => {
                 Set Job Preferences
               </button>
             </div>
+            {/* QR Code Authentication Card (Desktop only) */}
+<div 
+  className="hidden sm:block rounded-lg shadow-lg p-6 mb-6 border" 
+  style={{ 
+    backgroundColor: '#3f4651',
+    borderColor: '#D64933'
+  }}
+>
+  <h3 className="text-xl font-bold mb-3" style={{ color: '#eee5e9' }}>
+    Mobile Login
+  </h3>
+  <p className="mb-4" style={{ color: '#7c7c7c' }}>
+    Scan this QR code with your mobile device to login securely
+  </p>
 
-            {/* QR Code Authentication Card */}
-            <div 
-              className="rounded-lg shadow-lg p-6 mb-6 border" 
-              style={{ 
-                backgroundColor: '#3f4651',
-                borderColor: '#D64933'
-              }}
-            >
-              <h3 className="text-xl font-bold mb-3" style={{ color: '#eee5e9' }}>
-                Mobile Login
-              </h3>
-              <p className="mb-4" style={{ color: '#7c7c7c' }}>
-                Scan this QR code with your mobile device to login securely
-              </p>
-              
-              {showQRCode ? (
-                <div className="flex flex-col items-center">
-                  {/* Compact QR Code Container */}
-                  <div className="relative bg-white rounded-lg p-3 mb-4 max-w-xs mx-auto">
-                    <QRCodeDisplay 
-                      onMobileAuthenticated={handleQRAuthenticated}
-                      onClose={handleCloseQRCode}
-                    />
-                  </div>
-                  <p className="text-sm text-center mb-4" style={{ color: '#7c7c7c' }}>
-                    Scan with your FoxTrail mobile app
-                  </p>
-                  <button
-                    onClick={() => setShowQRCode(false)}
-                    className="px-4 py-2 text-sm rounded border transition-colors duration-200"
-                    style={{ 
-                      borderColor: '#D64933', 
-                      color: '#D64933',
-                      backgroundColor: 'transparent'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#D64933';
-                      e.currentTarget.style.color = '#eee5e9';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = '#D64933';
-                    }}
-                  >
-                    Close QR Code
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <button
-                    onClick={() => setShowQRCode(true)}
-                    className="px-6 py-3 rounded-lg font-medium transition-colors duration-200 hover:opacity-90 flex items-center justify-center mx-auto"
-                    style={{ backgroundColor: '#D64933', color: '#eee5e9' }}
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                    </svg>
-                    Generate QR Code for Mobile Login
-                  </button>
-                </div>
-              )}
-            </div>
+  {showQRCode ? (
+    <div className="flex flex-col items-center">
+      <div className="relative bg-white rounded-lg p-3 mb-4 max-w-xs mx-auto">
+        <QRCodeDisplay 
+          onMobileAuthenticated={handleQRAuthenticated}
+          onClose={handleCloseQRCode}
+        />
+      </div>
+      <button
+        onClick={() => setShowQRCode(false)}
+        className="px-4 py-2 text-sm rounded border transition-colors duration-200"
+        style={{ borderColor: '#D64933', color: '#D64933' }}
+      >
+        Close QR Code
+      </button>
+    </div>
+  ) : (
+    <div className="text-center">
+      <button
+        onClick={() => setShowQRCode(true)}
+        className="px-6 py-3 rounded-lg font-medium transition-colors duration-200 hover:opacity-90 flex items-center justify-center mx-auto"
+        style={{ backgroundColor: '#D64933', color: '#eee5e9' }}
+      >
+        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+        </svg>
+        Generate QR Code for Mobile Login
+      </button>
+    </div>
+  )}
+</div>
+
 
             {/* User Profile Section */}
             <div 
