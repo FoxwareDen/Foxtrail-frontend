@@ -11,6 +11,7 @@ export interface QRAuthSession {
 
 export class QRAuthService {
   private static readonly SESSION_DURATION = 5 * 60 * 1000; // 5 minutes
+  private static activeSubscriptions: Map<string, any> = new Map();
 
   /**
    * Generate a QR code that contains authentication data
@@ -138,6 +139,9 @@ export class QRAuthService {
     sessionToken: string,
     onUsed: () => void
   ): () => void {
+    // Remove any existing subscription for this session token
+    this.unsubscribeFromSessionUsage(sessionToken);
+
     const channel = supabase
       .channel(`qr-session-${sessionToken}`)
       .on(
@@ -151,13 +155,42 @@ export class QRAuthService {
         (payload: any) => {
           if (payload.new.mobile_device_authenticated === true) {
             onUsed();
+            // Auto-unsubscribe after successful usage
+            this.unsubscribeFromSessionUsage(sessionToken);
           }
         }
       )
       .subscribe();
 
+    // Store the channel for potential manual unsubscription
+    this.activeSubscriptions.set(sessionToken, channel);
+
+    // Return unsubscribe function
     return () => {
-      supabase.removeChannel(channel);
+      this.unsubscribeFromSessionUsage(sessionToken);
     };
+  }
+
+  /**
+   * Unsubscribe from session usage events
+   */
+  static unsubscribeFromSessionUsage(sessionToken: string): void {
+    const channel = this.activeSubscriptions.get(sessionToken);
+    if (channel) {
+      supabase.removeChannel(channel);
+      this.activeSubscriptions.delete(sessionToken);
+      console.log(`Unsubscribed from session: ${sessionToken}`);
+    }
+  }
+
+  /**
+   * Clean up all active subscriptions
+   */
+  static cleanupAllSubscriptions(): void {
+    for (const [sessionToken, channel] of this.activeSubscriptions.entries()) {
+      supabase.removeChannel(channel);
+      console.log(`Unsubscribed from session: ${sessionToken}`);
+    }
+    this.activeSubscriptions.clear();
   }
 }

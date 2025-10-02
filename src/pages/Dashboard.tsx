@@ -22,6 +22,10 @@ const Dashboard: React.FC = () => {
     window.location.reload();
   };
 
+  const handleCloseQRCode = () => {
+    setShowQRCode(false);
+  };
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#2B303A' }}>
       <nav className="shadow-lg" style={{ backgroundColor: '#1f242c' }}>
@@ -99,8 +103,12 @@ const Dashboard: React.FC = () => {
               
               {showQRCode ? (
                 <div className="flex flex-col items-center">
-                  <div className="p-4 bg-white rounded-lg mb-4">
-                    <QRCodeDisplay onMobileAuthenticated={handleQRAuthenticated} />
+                  {/* Compact QR Code Container */}
+                  <div className="relative bg-white rounded-lg p-3 mb-4 max-w-xs mx-auto">
+                    <QRCodeDisplay 
+                      onMobileAuthenticated={handleQRAuthenticated}
+                      onClose={handleCloseQRCode}
+                    />
                   </div>
                   <p className="text-sm text-center mb-4" style={{ color: '#7c7c7c' }}>
                     Scan with your FoxTrail mobile app
@@ -122,7 +130,7 @@ const Dashboard: React.FC = () => {
                       e.currentTarget.style.color = '#D64933';
                     }}
                   >
-                    Generate New QR Code
+                    Close QR Code
                   </button>
                 </div>
               ) : (
