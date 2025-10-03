@@ -1,20 +1,24 @@
-// src/services/qrAuthService.ts
+// src/services/AuthService.ts
 import { supabase } from '../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import QRCode from 'qrcode';
 
 export interface QRAuthSession {
-  id: string;
-  sessionToken: string;
-  expiresAt: string;
+  desktop_user_id: string;
+  session_token: string;
+  auth_token: string;
+  expires_at: string;
+  mobile_device_authenticated: boolean;
+  created_at: string;
+  used_at: string | null;
 }
 
 export class QRAuthService {
   private static readonly SESSION_DURATION = 5 * 60 * 1000; // 5 minutes
+  private static activeSubscriptions: Map<string, any> = new Map();
 
   /**
    * Generate a QR code that contains authentication data
-   * This creates a temporary session that mobile can use independently
    */
   static async generateQRSessionForTransfer(): Promise<{ 
     qrCodeDataUrl: string; 
@@ -31,35 +35,56 @@ export class QRAuthService {
     const sessionToken = uuidv4();
     const expiresAt = new Date(Date.now() + this.SESSION_DURATION);
 
-    // Instead of storing the refresh token directly, we'll store the user info
-    // and let mobile create its own session via a magic link or similar
-    // For now, we'll use a workaround: store the access token temporarily
-    const { error } = await supabase
-      .from('qr_auth_sessions')
-      .insert({
-        session_token: sessionToken,
-        desktop_user_id: session.user.id,
-        // Store the refresh token - mobile will use this to get its own independent session
-        auth_token: session.refresh_token,
-        expires_at: expiresAt.toISOString(),
-        mobile_device_authenticated: false
-      })
-      .select()
-      .single();
+    try {
+      // Try INSERT first
+      const { error: insertError } = await supabase
+        .from('qr_auth_sessions')
+        .insert({
+          desktop_user_id: session.user.id,
+          session_token: sessionToken,
+          auth_token: session.refresh_token,
+          expires_at: expiresAt.toISOString(),
+          mobile_device_authenticated: false,
+          used_at: null,
+          created_at: new Date().toISOString()
+        });
 
-    if (error) {
-      console.error('Error creating QR session:', error);
-      throw new Error('Failed to create QR session');
+      if (insertError) {
+        // If insert fails (likely due to duplicate desktop_user_id), try UPDATE
+        if (insertError.code === '23505') { // Unique violation
+          const { error: updateError } = await supabase
+            .from('qr_auth_sessions')
+            .update({
+              session_token: sessionToken,
+              auth_token: session.refresh_token,
+              expires_at: expiresAt.toISOString(),
+              mobile_device_authenticated: false,
+              used_at: null
+            })
+            .eq('desktop_user_id', session.user.id);
+
+          if (updateError) {
+            console.error('Error updating QR session:', updateError);
+            throw new Error('Failed to update QR session');
+          }
+        } else {
+          // Some other insert error
+          console.error('Error creating QR session:', insertError);
+          throw new Error('Failed to create QR session');
+        }
+      }
+    } catch (err) {
+      console.error('Error in generateQRSessionForTransfer:', err);
+      throw new Error('Failed to generate QR session');
     }
 
-    // QR code payload
+    // Generate QR code
     const qrPayload = {
       token: sessionToken,
       version: '1.0',
       timestamp: Date.now()
     };
 
-    // Generate QR code
     const qrCodeDataUrl = await QRCode.toDataURL(JSON.stringify(qrPayload), {
       width: 300,
       margin: 2,
@@ -102,13 +127,18 @@ export class QRAuthService {
     }
 
     // Mark as used
-    await supabase
+    const { error: updateError } = await supabase
       .from('qr_auth_sessions')
       .update({ 
         mobile_device_authenticated: true,
         used_at: new Date().toISOString()
       })
-      .eq('session_token', sessionToken);
+      .eq('desktop_user_id', data.desktop_user_id);
+
+    if (updateError) {
+      console.error('Error updating session as used:', updateError);
+      throw new Error('Failed to validate session');
+    }
 
     return {
       authToken: data.auth_token,
@@ -131,6 +161,95 @@ export class QRAuthService {
   }
 
   /**
+   * Get the current active session for user (if any)
+   */
+  static async getCurrentSession(userId: string): Promise<QRAuthSession | null> {
+    const { data, error } = await supabase
+      .from('qr_auth_sessions')
+      .select('*')
+      .eq('desktop_user_id', userId)
+      .single();
+
+    if (error) {
+      return null;
+    }
+
+    return data;
+  }
+
+  /**
+   * Check if user has an active, unused session
+   */
+  static async hasActiveSession(userId: string): Promise<boolean> {
+    const session = await this.getCurrentSession(userId);
+    if (!session) return false;
+
+    return !session.mobile_device_authenticated && 
+           new Date(session.expires_at) > new Date();
+  }
+
+  /**
+   * Invalidate current session for user
+   */
+  static async invalidateSession(userId: string): Promise<void> {
+    await supabase
+      .from('qr_auth_sessions')
+      .delete()
+      .eq('desktop_user_id', userId);
+  }
+
+  /**
+   * Refresh session - generate new token and extend expiry
+   */
+  static async refreshSession(): Promise<{ 
+    sessionToken: string;
+    expiresAt: Date;
+  }> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('No active session found');
+    }
+
+    const sessionToken = uuidv4();
+    const expiresAt = new Date(Date.now() + this.SESSION_DURATION);
+
+    // Try INSERT first, then UPDATE if conflict
+    const { error: insertError } = await supabase
+      .from('qr_auth_sessions')
+      .insert({
+        desktop_user_id: session.user.id,
+        session_token: sessionToken,
+        auth_token: session.refresh_token,
+        expires_at: expiresAt.toISOString(),
+        mobile_device_authenticated: false,
+        used_at: null,
+        created_at: new Date().toISOString()
+      });
+
+    if (insertError && insertError.code === '23505') {
+      // If insert fails due to duplicate, try UPDATE
+      const { error: updateError } = await supabase
+        .from('qr_auth_sessions')
+        .update({
+          session_token: sessionToken,
+          auth_token: session.refresh_token,
+          expires_at: expiresAt.toISOString(),
+          mobile_device_authenticated: false,
+          used_at: null
+        })
+        .eq('desktop_user_id', session.user.id);
+
+      if (updateError) {
+        throw new Error('Failed to refresh QR session');
+      }
+    } else if (insertError) {
+      throw new Error('Failed to refresh QR session');
+    }
+
+    return { sessionToken, expiresAt };
+  }
+
+  /**
    * Subscribe to session usage events
    * Optional: Desktop can be notified when mobile successfully logs in
    */
@@ -138,6 +257,9 @@ export class QRAuthService {
     sessionToken: string,
     onUsed: () => void
   ): () => void {
+    // Remove any existing subscription for this session token
+    this.unsubscribeFromSessionUsage(sessionToken);
+
     const channel = supabase
       .channel(`qr-session-${sessionToken}`)
       .on(
@@ -151,13 +273,42 @@ export class QRAuthService {
         (payload: any) => {
           if (payload.new.mobile_device_authenticated === true) {
             onUsed();
+            // Auto-unsubscribe after successful usage
+            this.unsubscribeFromSessionUsage(sessionToken);
           }
         }
       )
       .subscribe();
 
+    // Store the channel for potential manual unsubscription
+    this.activeSubscriptions.set(sessionToken, channel);
+
+    // Return unsubscribe function
     return () => {
-      supabase.removeChannel(channel);
+      this.unsubscribeFromSessionUsage(sessionToken);
     };
+  }
+
+  /**
+   * Unsubscribe from session usage events
+   */
+  static unsubscribeFromSessionUsage(sessionToken: string): void {
+    const channel = this.activeSubscriptions.get(sessionToken);
+    if (channel) {
+      supabase.removeChannel(channel);
+      this.activeSubscriptions.delete(sessionToken);
+      console.log(`Unsubscribed from session: ${sessionToken}`);
+    }
+  }
+
+  /**
+   * Clean up all active subscriptions
+   */
+  static cleanupAllSubscriptions(): void {
+    for (const [sessionToken, channel] of this.activeSubscriptions.entries()) {
+      supabase.removeChannel(channel);
+      console.log(`Unsubscribed from session: ${sessionToken}`);
+    }
+    this.activeSubscriptions.clear();
   }
 }

@@ -46,7 +46,7 @@ export const JobListing: React.FC = () => {
   if (loading && jobs.length === 0) {
     return (
       <div 
-        className="min-h-screen flex items-center justify-center"
+        className="min-h-screen flex items-center justify-center w-full"
         style={{ backgroundColor: '#2b303a' }}
       >
         <div className="text-center">
@@ -62,18 +62,17 @@ export const JobListing: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen py-8"
+      className="min-h-screen py-8 w-full overflow-x-hidden"
       style={{ backgroundColor: '#2b303a' }}
     >
-         
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-           <div 
-            className="text-[#D64933] text-2xl cursor-pointer hover:text-orange-400"
+          <div 
+            className="text-[#D64933] text-2xl cursor-pointer hover:text-orange-400 mb-4"
             onClick={handleBack}
           >
-            ←
+            ← Back to Dashboard
           </div>
           <h1 className="text-3xl font-bold mb-2" style={{ color: '#eee5e9' }}>
             Job Listings
@@ -86,7 +85,7 @@ export const JobListing: React.FC = () => {
         {/* Error Message */}
         {error && (
           <div 
-            className="border rounded-md p-4 mb-6"
+            className="border rounded-md p-4 mb-6 w-full"
             style={{ 
               backgroundColor: '#D64933',
               borderColor: '#D64933'
@@ -115,7 +114,7 @@ export const JobListing: React.FC = () => {
 
         {/* Loading indicator for filter operations */}
         {loading && jobs.length > 0 && (
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-6 w-full">
             <div 
               className="animate-spin rounded-full h-8 w-8 border-b-2"
               style={{ borderBottomColor: '#D64933' }}
@@ -125,7 +124,7 @@ export const JobListing: React.FC = () => {
 
         {/* Job Grid */}
         {jobs.length === 0 && !loading ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 w-full">
             <p className="text-lg mb-4" style={{ color: '#717171' }}>
               No jobs found matching your criteria.
             </p>
@@ -138,7 +137,7 @@ export const JobListing: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
             {jobs.map((job) => (
               <JobCard
                 key={job.id}
@@ -151,7 +150,7 @@ export const JobListing: React.FC = () => {
 
         {/* Load More Button (if you want pagination later) */}
         {jobs.length > 0 && (
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center w-full">
             <button
               onClick={fetchJobs}
               className="px-6 py-3 border rounded-md hover:opacity-80 focus:ring-2 focus:outline-none"

@@ -10,18 +10,13 @@
     "core:default",
     "shell:default",
     "os:default",
-    "opener:allow-open-url",
+    "opener:default",
     {
-      "identifier": "opener:allow-open-url",
+      "identifier": "shell:allow-open",
       "allow": [
         {
-          "url": "http://localhost:*"
-        },
-        {
-          "url": "https://*.supabase.co/*"
-        },
-        {
-          "url": "https://fvlsvvzbywmozvhwxmzl.supabase.co/*"
+          "cmd": "open",
+          "name": "shell:allow-open"
         }
       ]
     },
