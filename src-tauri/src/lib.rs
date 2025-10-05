@@ -1,3 +1,5 @@
+use tauri_plugin_foxtrail_worker::FoxtrailWorkerExt;
+
 // Learn more abouat Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -13,16 +15,11 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init()) // Add this line
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_barcode_scanner::init())
+        .plugin(tauri_plugin_foxtrail_worker::init())
+        .plugin(tauri_plugin_sql::Builder::default().build())
+        .plugin(tauri_plugin_notification::init())
         .invoke_handler(tauri::generate_handler![greet])
-        .setup(|_app| {
-            // #[cfg(mobile)]
-            // {
-            //     let handle = _app.handle().clone();
-            //     handle.plugin(tauri_plugin_barcode_scanner::init());
-            // }
-
-            Ok(())
-        })
+        .setup(|_app| Ok(()))
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

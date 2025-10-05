@@ -22,6 +22,9 @@
     "barcode-scanner:default",
     "barcode-scanner:default",
     "barcode-scanner:allow-scan",
-    "barcode-scanner:allow-cancel"
+    "barcode-scanner:allow-cancel",
+    "sql:default",
+    "notification:default",
+    "sql:allow-execute"
   ]
 }
