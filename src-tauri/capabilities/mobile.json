@@ -24,7 +24,12 @@
     "barcode-scanner:allow-scan",
     "barcode-scanner:allow-cancel",
     "sql:default",
+    "sql:allow-execute",
     "notification:default",
-    "sql:allow-execute"
+    "notification:allow-request-permission",
+    "notification:allow-check-permissions",
+    "notification:allow-register-action-types",
+    "foxtrail-worker:default",
+    "foxtrail-worker:allow-start-worker"
   ]
 }
