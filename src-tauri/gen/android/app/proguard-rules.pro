@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep SLF4J classes
+-keep class org.slf4j.** { *; }
+-keep class org.slf4j.impl.StaticLoggerBinder { *; }
+-dontwarn org.slf4j.**

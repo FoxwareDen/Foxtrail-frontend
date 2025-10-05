@@ -1,4 +1,4 @@
-import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { generateSignInCode } from "../lib/supabaseClient";
 

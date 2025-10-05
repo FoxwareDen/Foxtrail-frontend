@@ -1,4 +1,4 @@
-import { cancel, scan, Format, requestPermissions, checkPermissions, Scanned } from "@tauri-apps/plugin-barcode-scanner"
+import { cancel, scan, Format, requestPermissions, checkPermissions } from "@tauri-apps/plugin-barcode-scanner"
 
 /**
  * Indicates whether a scanning session is currently active.
@@ -109,6 +109,7 @@ export async function startScan<T>(
         windowed: false, // embed the camera in DOM
         formats,
         cameraDirection,
+        // @ts-ignore,
         videoElementId,
     });
 
