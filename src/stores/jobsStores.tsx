@@ -6,9 +6,10 @@ interface JobsState {
   loading: boolean
   error: string | null
   currentJob: Job | null
+  totalJobs: number
 
   // Actions
-  fetchJobs: () => Promise<void>
+  fetchJobs: (page?: number, limit?: number) => Promise<void>
   fetchJobById: (id: string) => Promise<void>
   searchJobs: (query: string) => Promise<void>
   filterByCategory: (category: string) => Promise<void>
@@ -22,29 +23,32 @@ export const useJobsStore = create<JobsState>((set, _get) => ({
   loading: false,
   error: null,
   currentJob: null,
+  totalJobs: 0,
 
-  fetchJobs: async () => {
+  fetchJobs: async (page = 1, limit = 9) => {
     set({ loading: true, error: null })
     try {
-      console.log('Fetching jobs from Supabase...')
-      const { data, error } = await supabase
+      const start = (page - 1) * limit
+      const end = start + limit - 1
+
+      const { data, error, count } = await supabase
         .from('jobs')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
+        .range(start, end)
 
-      console.log('Supabase response:', { data, error })
+      if (error) throw error
 
-      if (error) {
-        console.error('Supabase error:', error)
-        throw error
-      }
-
-      set({ jobs: data || [], loading: false })
+      set({
+        jobs: data || [],
+        totalJobs: count || 0,
+        loading: false,
+        error: null,
+      })
     } catch (error) {
-      console.error('Fetch jobs error:', error)
       set({
         error: error instanceof Error ? error.message : 'Failed to fetch jobs',
-        loading: false
+        loading: false,
       })
     }
   },
@@ -63,7 +67,7 @@ export const useJobsStore = create<JobsState>((set, _get) => ({
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to fetch job',
-        loading: false
+        loading: false,
       })
     }
   },
@@ -78,11 +82,11 @@ export const useJobsStore = create<JobsState>((set, _get) => ({
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      set({ jobs: data || [], loading: false })
+      set({ jobs: data || [], totalJobs: data?.length || 0, loading: false })
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to search jobs',
-        loading: false
+        loading: false,
       })
     }
   },
@@ -97,11 +101,11 @@ export const useJobsStore = create<JobsState>((set, _get) => ({
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      set({ jobs: data || [], loading: false })
+      set({ jobs: data || [], totalJobs: data?.length || 0, loading: false })
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to filter jobs',
-        loading: false
+        loading: false,
       })
     }
   },
@@ -116,11 +120,11 @@ export const useJobsStore = create<JobsState>((set, _get) => ({
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      set({ jobs: data || [], loading: false })
+      set({ jobs: data || [], totalJobs: data?.length || 0, loading: false })
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to filter jobs',
-        loading: false
+        loading: false,
       })
     }
   },
