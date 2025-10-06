@@ -24,6 +24,30 @@ android {
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
     }
+    signingConfigs {
+      create("release") {
+        val keystorePropertiesFile = rootProject.file("keystore.properties")
+        val keystoreProperties = Properties()
+
+        if (keystorePropertiesFile.exists()) {
+          keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+        } else {
+          throw GradleException(
+            "keystore.properties file not found at ${keystorePropertiesFile.absolutePath}"
+          )
+        }
+
+        fun getProp(name: String): String =
+        keystoreProperties[name]?.toString()
+        ?: throw GradleException("Missing property '$name' in keystore.properties")
+
+        keyAlias = getProp("keyAlias")
+        keyPassword = getProp("password")
+        storeFile = file(getProp("storeFile"))
+        storePassword = getProp("password")
+      }
+    }
+
     buildTypes {
         getByName("debug") {
             manifestPlaceholders["usesCleartextTraffic"] = "true"
@@ -38,6 +62,7 @@ android {
         }
         getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
