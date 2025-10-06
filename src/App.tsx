@@ -32,9 +32,9 @@ function App() {
       const res = await start_service_notification(publicUrl, publicKey, userId);
 
       if (res) {
-        alert('Service started')
+        console.log("Service started")
       } else {
-        alert('No servives for this platform')
+        console.log("Service not started")
       }
 
 
