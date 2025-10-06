@@ -13,15 +13,18 @@ export const JobListing: React.FC = () => {
     loading, 
     error, 
     currentJob,
+    totalJobs,
     fetchJobs, 
     clearError,
     setCurrentJob 
   } = useJobsStore()
 
-  // Fetch jobs on component mount
+  const [currentPage, setCurrentPage] = React.useState(1)
+  const jobsPerPage = 9
+
   useEffect(() => {
-    fetchJobs()
-  }, [fetchJobs])
+    fetchJobs(currentPage, jobsPerPage)
+  }, [fetchJobs, currentPage])
 
   const handleJobClick = (job: Job) => {
     setCurrentJob(job)
@@ -33,14 +36,42 @@ export const JobListing: React.FC = () => {
 
   const handleApply = (job: Job) => {
     if (job.redirect_url) {
-      // Open external URL in default browser (Tauri specific)
       window.open(job.redirect_url, '_blank')
     }
   }
-  const navigate = useNavigate();
-  // handle back button logic
-  const handleBack = () =>{
+
+  const navigate = useNavigate()
+  const handleBack = () => {
     navigate('/dashboard')
+  }
+
+  // Pagination logic
+  const totalPages = Math.ceil(totalJobs / jobsPerPage)
+  const maxVisiblePages = 5
+  
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+  
+  // Adjust start page if we're near the end
+  if (endPage - startPage + 1 < maxVisiblePages) {
+    startPage = Math.max(1, endPage - maxVisiblePages + 1)
+  }
+
+  const pageNumbers = []
+  for (let i = startPage; i <= endPage; i++) {
+    pageNumbers.push(i)
+  }
+
+  const handlePrevious = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  const handleNext = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1)
+    }
   }
 
   if (loading && jobs.length === 0) {
@@ -78,7 +109,7 @@ export const JobListing: React.FC = () => {
             Job Listings
           </h1>
           <p style={{ color: '#717171' }}>
-            Find your next opportunity from {jobs.length} available positions
+            Showing page {currentPage} of {totalPages}
           </p>
         </div>
 
@@ -86,10 +117,7 @@ export const JobListing: React.FC = () => {
         {error && (
           <div 
             className="border rounded-md p-4 mb-6 w-full"
-            style={{ 
-              backgroundColor: '#D64933',
-              borderColor: '#D64933'
-            }}
+            style={{ backgroundColor: '#D64933', borderColor: '#D64933' }}
           >
             <div className="flex">
               <div className="flex-shrink-0">
@@ -129,7 +157,7 @@ export const JobListing: React.FC = () => {
               No jobs found matching your criteria.
             </p>
             <button
-              onClick={fetchJobs}
+              onClick={() => fetchJobs(1, jobsPerPage)}
               className="px-6 py-2 text-white rounded-md hover:opacity-80"
               style={{ backgroundColor: '#D64933' }}
             >
@@ -148,19 +176,58 @@ export const JobListing: React.FC = () => {
           </div>
         )}
 
-        {/* Load More Button (if you want pagination later) */}
-        {jobs.length > 0 && (
-          <div className="mt-8 text-center w-full">
+        {/* Pagination */}
+        {totalJobs > jobsPerPage && (
+          <div className="flex justify-center items-center mt-8 space-x-2">
+            {/* Previous Button */}
             <button
-              onClick={fetchJobs}
-              className="px-6 py-3 border rounded-md hover:opacity-80 focus:ring-2 focus:outline-none"
+              onClick={handlePrevious}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-md ${currentPage === 1 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:opacity-80'
+              }`}
               style={{ 
-                backgroundColor: '#92DCE5',
-                borderColor: '#92DCE5',
-                color: '#2b303a',
+                backgroundColor: currentPage === 1 ? '#717171' : '#D64933',
+                color: '#eee5e9'
               }}
             >
-              Refresh Jobs
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            {/* Page Numbers */}
+            {pageNumbers.map((pageNumber) => (
+              <button
+                key={pageNumber}
+                onClick={() => setCurrentPage(pageNumber)}
+                className={`px-4 py-2 rounded-md ${
+                  currentPage === pageNumber
+                    ? 'bg-[#D64933] text-white'
+                    : 'bg-[#eee5e9] text-[#2b303a] hover:opacity-80'
+                }`}
+              >
+                {pageNumber}
+              </button>
+            ))}
+
+            {/* Next Button */}
+            <button
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-md ${currentPage === totalPages 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:opacity-80'
+              }`}
+              style={{ 
+                backgroundColor: currentPage === totalPages ? '#717171' : '#D64933',
+                color: '#eee5e9'
+              }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
         )}
