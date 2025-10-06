@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use tauri_plugin_foxtrail_worker::FoxtrailWorkerExt;
 
 // Learn more abouat Tauri commands at https://tauri.app/develop/calling-rust/
