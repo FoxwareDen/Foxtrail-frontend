@@ -1632,12 +1632,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hashbrown"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5419bdc4f6a9207fbeba6d11b604d481addf78ecd10c11ad51e76c2f6482748d"
-
-[[package]]
 name = "hashlink"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1979,7 +1973,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b0f83760fb341a774ed326568e19f5a863af4a952def8c39f9ab92fd95b88e5"
 dependencies = [
  "equivalent",
- "hashbrown 0.16.0",
+ "hashbrown 0.15.5",
  "serde",
  "serde_core",
 ]
@@ -4716,8 +4710,8 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-foxtrail-worker"
-version = "0.1.0"
-source = "git+https://github.com/fox5352/tauri-plugin-foxtrail-worker-api.git#006240663ae7d614cf0efd876de664a8f19500f1"
+version = "0.4.0"
+source = "git+https://github.com/fox5352/tauri-plugin-foxtrail-worker-api.git#ceddfb49de07e6c374aba178e7688be836db6e62"
 dependencies = [
  "serde",
  "tauri",
@@ -5854,7 +5848,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.1",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
