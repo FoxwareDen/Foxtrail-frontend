@@ -4,7 +4,7 @@ import logoImage from "../../public/logo.png";
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { platform } from '@tauri-apps/plugin-os';
-import { scan, Format } from '@tauri-apps/plugin-barcode-scanner';
+import { scan, Format, requestPermissions as requestCameraPermissions } from '@tauri-apps/plugin-barcode-scanner';
 import { supabase } from '../lib/supabaseClient';
 
 const LoginPage: React.FC = () => {
@@ -13,6 +13,7 @@ const LoginPage: React.FC = () => {
   const [error, setError ] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,20 +41,61 @@ const LoginPage: React.FC = () => {
     return <Navigate to="/dashboard" replace/>
   }
 
+  const requestCameraPermission = async (): Promise<boolean> => {
+    try {
+      setLoading('permission');
+      setError(null);
+
+      console.log('📷 Requesting camera permission...');
+      
+      // Use the barcode scanner's permission system, similar to your notification pattern
+      const permission = await requestCameraPermissions();
+      const granted = permission === 'granted';
+      
+      setCameraPermission(granted);
+      setLoading(null);
+      
+      if (!granted) {
+        console.error('❌ CAMERA PERMISSION DENIED: User has not granted camera permissions');
+        setError('Camera permission is required to scan QR codes. Please enable camera access in your device settings.');
+      } else {
+        console.log('✅ CAMERA PERMISSION GRANTED: User has granted camera permissions');
+      }
+      
+      return granted;
+    } catch (error) {
+      console.error('❌ ERROR REQUESTING CAMERA PERMISSION:', error);
+      setError('Failed to request camera permission. Please enable camera access in your device settings.');
+      setLoading(null);
+      return false;
+    }
+  };
+
   const handleQRScan = async (): Promise<void> => {
     try {
       setScanning(true);
       setError(null);
       setLoading('qr-scan');
 
-      // Scan the QR code
+      console.log('🚀 Starting QR scan process...');
+
+      // First, explicitly request camera permission using the same pattern as notifications
+      const hasPermission = await requestCameraPermission();
+      
+      if (!hasPermission) {
+        throw new Error('Camera permission denied. Please enable camera access to scan QR codes.');
+      }
+
+      console.log('✅ Camera permission granted, starting scan...');
+
+      // Now scan the QR code
       const result = await scan({
         formats: [Format.QRCode],
         windowed: false,
       });
 
       if (result.content) {
-        console.log('QR Code scanned:', result.content);
+        console.log('📱 QR Code scanned:', result.content);
         
         // Parse QR code data
         const parsedData = JSON.parse(result.content);
@@ -63,7 +105,7 @@ const LoginPage: React.FC = () => {
           throw new Error('Invalid QR code format');
         }
 
-        console.log('Validating QR session...');
+        console.log('🔐 Validating QR session...');
 
         // Validate and retrieve auth data from the QR session
         const { data: qrSession, error: sessionError } = await supabase
@@ -82,10 +124,9 @@ const LoginPage: React.FC = () => {
           throw new Error('QR code has expired. Please generate a new one on desktop.');
         }
 
-        console.log('QR session valid, authenticating...');
+        console.log('✅ QR session valid, authenticating...');
 
         // Use the refresh token to create a NEW independent session on mobile
-        // This ensures mobile has its own session that won't affect desktop
         const { data: authData, error: authError } = await supabase.auth.refreshSession({
           refresh_token: qrSession.auth_token
         });
@@ -95,8 +136,7 @@ const LoginPage: React.FC = () => {
           throw new Error('Failed to create mobile session. The QR code may have expired.');
         }
 
-        console.log('Successfully created independent mobile session!');
-        console.log('Mobile session user:', authData.user?.email);
+        console.log('✅ Successfully created independent mobile session!');
 
         // Mark the QR session as used
         await supabase
@@ -107,21 +147,32 @@ const LoginPage: React.FC = () => {
           })
           .eq('session_token', token);
 
-        console.log('QR session marked as used');
+        console.log('✅ QR session marked as used');
 
         // Mark this session as coming from QR code for proper logout handling
         localStorage.setItem('session_source', 'qr_code');
 
-        // The auth state will be updated automatically by the AuthContext listener
-        // Just wait a moment for it to propagate
+        // Wait for auth state to propagate
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // Navigate to dashboard
         navigate('/dashboard');
       }
-    } catch (err) {
-      console.error('Error scanning QR code:', err);
-      setError(err instanceof Error ? err.message : 'Failed to scan QR code. Please try again.');
+    } catch (err: any) {
+      console.error('❌ Error scanning QR code:', err);
+      
+      // Check for specific error messages that indicate permission issues
+      if (err.message?.includes('permission') || 
+          err.message?.includes('camera') || 
+          err.message?.includes('denied') ||
+          err.message?.includes('NotAllowedError') ||
+          err.message?.includes('PermissionDenied')) {
+        setError('Camera permission is required to scan QR codes. Please enable camera access in your device settings and try again.');
+      } else if (err.message?.includes('canceled') || err.message?.includes('dismissed')) {
+        setError('Scan cancelled. Please try again.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to scan QR code. Please try again.');
+      }
     } finally {
       setScanning(false);
       setLoading(null);
@@ -132,10 +183,7 @@ const LoginPage: React.FC = () => {
     try {
       setLoading('google');
       setError(null);
-      
-      // Mark this as a regular OAuth login (not QR)
       localStorage.setItem('session_source', 'oauth');
-      
       await signInWithGoogle();
       setLoading(null);
     } catch (error) {
@@ -149,10 +197,7 @@ const LoginPage: React.FC = () => {
     try{
       setLoading('linkedIn')
       setError(null)
-      
-      // Mark this as a regular OAuth login (not QR)
       localStorage.setItem('session_source', 'oauth');
-      
       await signInWithLinkedIn()
       setLoading(null);
     }catch(error){
@@ -184,9 +229,21 @@ const LoginPage: React.FC = () => {
 
         {error && (
           <div className={`${
-            error.includes('verified') ? 'bg-blue-100 border-blue-400 text-blue-700' : 'bg-red-100 border-red-400 text-red-700'
+            error.includes('verified') ? 'bg-blue-100 border-blue-400 text-blue-700' : 
+            error.includes('permission') || error.includes('camera') ? 'bg-yellow-100 border-yellow-400 text-yellow-700' :
+            'bg-red-100 border-red-400 text-red-700'
           } border px-4 py-3 rounded max-w-sm w-full`}>
             {error}
+            {error.includes('permission') && (
+              <div className="mt-2">
+                <button
+                  onClick={requestCameraPermission}
+                  className="text-sm underline hover:opacity-80"
+                >
+                  Request Camera Permission Again
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -200,11 +257,16 @@ const LoginPage: React.FC = () => {
               <p className="text-gray-400 text-sm">
                 Scan the QR code from your desktop to login
               </p>
+              <p className="text-gray-500 text-xs mt-2">
+                {cameraPermission === true 
+                  ? '✅ Camera access granted' 
+                  : '📷 Camera permission will be requested'}
+              </p>
             </div>
 
             <button
               onClick={handleQRScan}
-              disabled={scanning || loading === 'qr-scan'}
+              disabled={scanning || loading === 'qr-scan' || loading === 'permission'}
               className="w-full bg-transparent border-2 border-[#92dce5] text-white py-4 px-6 rounded-full flex items-center justify-center space-x-3 hover:bg-[#92dce5] hover:bg-opacity-10 transition-colors disabled:opacity-50"
             >
               <svg
@@ -221,7 +283,8 @@ const LoginPage: React.FC = () => {
                 />
               </svg>
               <span className="text-lg font-medium">
-                {scanning || loading === 'qr-scan' ? 'Authenticating...' : 'Scan QR Code'}
+                {loading === 'permission' ? 'Requesting Camera Access...' : 
+                 scanning || loading === 'qr-scan' ? 'Scanning...' : 'Scan QR Code'}
               </span>
             </button>
 
