@@ -26,26 +26,22 @@ android {
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
     }
     signingConfigs {
-      create("release") {
-        val keystorePropertiesFile = rootProject.file("keystore.properties")
-        val keystoreProperties = Properties()
+      val keystorePropertiesFile = rootProject.file("keystore.properties")
 
-        if (keystorePropertiesFile.exists()) {
+      if (keystorePropertiesFile.exists()) {
+        create("release") {
+          val keystoreProperties = Properties()
           keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-        } else {
-          throw GradleException(
-            "keystore.properties file not found at ${keystorePropertiesFile.absolutePath}"
-          )
+
+          fun getProp(name: String): String =
+            keystoreProperties[name]?.toString()
+              ?: throw GradleException("Missing property '$name' in keystore.properties")
+
+          keyAlias = getProp("keyAlias")
+          keyPassword = getProp("password")
+          storeFile = file(getProp("storeFile"))
+          storePassword = getProp("password")
         }
-
-        fun getProp(name: String): String =
-        keystoreProperties[name]?.toString()
-        ?: throw GradleException("Missing property '$name' in keystore.properties")
-
-        keyAlias = getProp("keyAlias")
-        keyPassword = getProp("password")
-        storeFile = file(getProp("storeFile"))
-        storePassword = getProp("password")
       }
     }
 
@@ -55,7 +51,8 @@ android {
             isDebuggable = true
             isJniDebuggable = true
             isMinifyEnabled = false
-            packaging {                jniLibs.keepDebugSymbols.add("*/arm64-v8a/*.so")
+            packaging {
+                jniLibs.keepDebugSymbols.add("*/arm64-v8a/*.so")
                 jniLibs.keepDebugSymbols.add("*/armeabi-v7a/*.so")
                 jniLibs.keepDebugSymbols.add("*/x86/*.so")
                 jniLibs.keepDebugSymbols.add("*/x86_64/*.so")
@@ -63,7 +60,10 @@ android {
         }
         getByName("release") {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+
+            signingConfigs.findByName("release")?.let {
+                signingConfig = it
+            }
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
