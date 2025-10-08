@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from "./pages/Dashboard";
 import JobPrefrences from "./pages/JobPrefrences";
 import JobListings from "./pages/JobListings";
+import UserPrefJobListing from "./pages/UserPrefJobListing";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useEffect } from "react";
@@ -71,6 +72,14 @@ function App() {
                   <JobPrefrences />
                 </ProtectedRoute>
               }
+            />
+            <Route
+            path="/user-job-pref"
+            element={
+              <ProtectedRoute>
+                <UserPrefJobListing></UserPrefJobListing>
+              </ProtectedRoute>
+            }
             />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
