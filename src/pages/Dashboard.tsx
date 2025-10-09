@@ -4,6 +4,7 @@ import LogoutButton from '../components/LogoutButton'
 import { useNavigate } from 'react-router-dom'
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import { useState } from 'react';
+import logoTextImage from "../img/FoxTrail.png";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth()
@@ -30,15 +31,13 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#2B303A' }}>
-      <nav className="shadow-lg" style={{ backgroundColor: '#1f242c' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#2b303a' }}>
+      <nav className='border-b-2 border-[#D64933]' style={{ backgroundColor: '#2b303a' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <div className="flex-shrink-0">
-              <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#D64933' }}>
-                FoxTrail
-              </h1>
+            <div className='sm:flex items-center space-x-4 mb-5'>
+              <img src={logoTextImage} alt="LogoText" className= "w-40 h-10 py-2 px-4 ml-6 mt-4"></img>
             </div>
             
             {/* Desktop user info and logout */}
@@ -67,12 +66,12 @@ const Dashboard: React.FC = () => {
         </div>
       </nav>
       
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-2 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {/* Main Dashboard Card */}
           <div 
-            className="rounded-lg shadow-lg p-6 mb-6" 
-            style={{ backgroundColor: '#353b47' }}
+            className="p-6 mb-6" 
+            style={{ backgroundColor: '#2b303a' }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: '#eee5e9' }}>Dashboard</h2>
             <p className="mb-6" style={{ color: '#7c7c7c' }}>Welcome to your FoxTrail dashboard! Manage your job search and preferences.</p>
@@ -81,7 +80,7 @@ const Dashboard: React.FC = () => {
             <div className="mb-8">
               <button 
                 onClick={handleJobPreferences}
-                className="px-8 py-3 rounded-full text-lg font-medium transition-colors duration-200 hover:opacity-90"
+                className="px-8 py-3 rounded-full cursor-pointer text-lg font-medium transition-colors duration-200 hover:opacity-90"
                 style={{ backgroundColor: '#D64933', color: '#eee5e9' }}
               >
                 Set Job Preferences
@@ -89,9 +88,9 @@ const Dashboard: React.FC = () => {
             </div>
             {/* QR Code Authentication Card (Desktop only) */}
 <div 
-  className="hidden sm:block rounded-lg shadow-lg p-6 mb-6 border" 
+  className="hidden sm:block rounded-lg p-6 mb-6 border" 
   style={{ 
-    backgroundColor: '#3f4651',
+    backgroundColor: '#2b303a',
     borderColor: '#D64933'
   }}
 >
@@ -122,7 +121,7 @@ const Dashboard: React.FC = () => {
     <div className="text-center">
       <button
         onClick={() => setShowQRCode(true)}
-        className="px-6 py-3 rounded-lg font-medium transition-colors duration-200 hover:opacity-90 flex items-center justify-center mx-auto"
+        className="px-6 py-3 rounded-full cursor-pointer font-medium transition-colors duration-200 hover:opacity-90 flex mx-auto"
         style={{ backgroundColor: '#D64933', color: '#eee5e9' }}
       >
         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,7 +137,7 @@ const Dashboard: React.FC = () => {
             {/* User Profile Section */}
             <div 
               className="rounded-lg p-6" 
-              style={{ backgroundColor: '#3f4651' }}
+              style={{ backgroundColor: '#2b303a' }}
             >
               <h3 className="text-xl font-semibold mb-4" style={{ color: '#eee5e9' }}>Your Profile</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -174,19 +173,18 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pr-6 pl-6">
             <div 
-              className="rounded-lg p-6 transition-all duration-200 cursor-pointer hover:scale-105"
+              className="rounded-lg p-6 transition-all border-1 border-[#92DCE5] duration-200 cursor-pointer hover:scale-105"
               style={{ 
-                backgroundColor: '#353b47',
-                boxShadow: '0 4px 6px -1px rgba(214, 73, 51, 0.1)'
+                backgroundColor: '#2b303a',
               }}
               onClick={handleExploreNewJobs}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#3f4651';
+                e.currentTarget.style.backgroundColor = '#2b303a';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#353b47';
+                e.currentTarget.style.backgroundColor = '#2b303a';
               }}
             >
               <div className="flex items-center mb-2">
@@ -199,17 +197,16 @@ const Dashboard: React.FC = () => {
               <p style={{ color: '#7c7c7c' }}>Discover new opportunities</p>
             </div>
                         <div 
-              className="rounded-lg p-6 transition-all duration-200 cursor-pointer hover:scale-105"
+              className="rounded-lg p-6  border-1 border-[#D64933] transition-all duration-200 cursor-pointer hover:scale-105"
               style={{ 
-                backgroundColor: '#353b47',
-                boxShadow: '0 4px 6px -1px rgba(214, 73, 51, 0.1)'
+                backgroundColor: '#2b303a',
               }}
               onClick={handleUserPrefJobListing}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#3f4651';
+                e.currentTarget.style.backgroundColor = '#2b303a';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#353b47';
+                e.currentTarget.style.backgroundColor = '#2b303a';
               }}
             >
               <div className="flex items-center mb-2">
