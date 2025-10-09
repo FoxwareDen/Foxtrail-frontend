@@ -9,7 +9,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useEffect } from "react";
 import { supabase } from "./lib/supabaseClient";
-import { start_service_notification } from "./lib/notification";
+import { get_notification_state, start_service_notification } from "./lib/notification";
+import { getPlatform } from "./lib/utils";
 
 function App() {
 
@@ -17,6 +18,7 @@ function App() {
     const checkAuth = async () => {
       const { data, error } = await supabase.auth.getUser();
 
+      if (getPlatform() !== "android") return;
 
       if (!data.user || error) {
         return;
@@ -74,12 +76,12 @@ function App() {
               }
             />
             <Route
-            path="/user-job-pref"
-            element={
-              <ProtectedRoute>
-                <UserPrefJobListing></UserPrefJobListing>
-              </ProtectedRoute>
-            }
+              path="/user-job-pref"
+              element={
+                <ProtectedRoute>
+                  <UserPrefJobListing></UserPrefJobListing>
+                </ProtectedRoute>
+              }
             />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
