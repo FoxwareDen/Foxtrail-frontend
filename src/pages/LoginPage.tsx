@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
-import logoTextImage from "../../public/FoxTrail.png";
-import logoImage from "../../public/logo.png";
+import logoTextImage from "../img/FoxTrail.png";
+import logoImage from "../img/logo.png";
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { platform } from '@tauri-apps/plugin-os';
