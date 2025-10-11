@@ -9,7 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useEffect } from "react";
 import { supabase } from "./lib/supabaseClient";
-import { get_notification_state, start_service_notification } from "./lib/notification";
+import { start_service_notification } from "./lib/notification";
 import { getPlatform } from "./lib/utils";
 
 function App() {
