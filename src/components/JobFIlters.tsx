@@ -77,7 +77,7 @@ export const JobFilters: React.FC = () => {
 
   return (
     <div 
-      className="p-6 rounded-lg shadow-md mb-6"
+      className="rounded-lg mb-6 border-b-1 pb-4 border-[#D64933]"
       style={{ backgroundColor: '#2b303a' }}
     >
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

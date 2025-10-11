@@ -1,7 +1,8 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient"; // Adjust path as needed
+import { supabase } from "../lib/supabaseClient";
+import logoTextImage from "../img/FoxTrail.png";
 
 interface UniqueValues {
   locations: string[];
@@ -288,9 +289,9 @@ const JobPreferences: React.FC = () => {
           >
             ←
           </div>
-          <div className="text-[#D64933] text-2xl font-bold">
-            FoxTrail
-          </div>
+            <div className='sm:flex items-center space-x-4 mb-5'>
+              <img src={logoTextImage} alt="LogoText" className= "w-40 h-10 py-2 px-4 ml-6 mt-4"></img>
+            </div>
         </div>
 
         {/* Success Message */}
@@ -345,7 +346,7 @@ const JobPreferences: React.FC = () => {
               <button
                 key={mode}
                 onClick={() => toggleWorkMode(mode)}
-                className={`px-6 py-2 rounded-full border-2 transition-colors ${
+                className={`px-6 py-2 rounded-full border-2 cursor-pointer transition-colors ${
                   selectedWorkModes.includes(mode)
                     ? 'border-[#D64933] bg-[#D64933] text-white'
                     : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10'
@@ -366,7 +367,7 @@ const JobPreferences: React.FC = () => {
                 <button
                   key={type}
                   onClick={() => toggleJobType(type)}
-                  className={`px-6 py-2 rounded-full border-2 transition-colors ${
+                  className={`px-6 py-2 rounded-full cursor-pointer border-2 transition-colors ${
                     selectedJobTypes.includes(type)
                       ? 'border-[#D64933] bg-[#D64933] text-white'
                       : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10'
@@ -381,7 +382,7 @@ const JobPreferences: React.FC = () => {
                 <button
                   key={type}
                   onClick={() => toggleJobType(type)}
-                  className={`px-6 py-2 rounded-full border-2 transition-colors ${
+                  className={`px-6 py-2 rounded-full cursor-pointer border-2 transition-colors ${
                     selectedJobTypes.includes(type)
                       ? 'border-[#D64933] bg-[#D64933] text-white'
                       : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10'
@@ -448,7 +449,7 @@ const JobPreferences: React.FC = () => {
           <button 
             onClick={handleSave}
             disabled={!location || !city || !jobTitle || saving}
-            className="bg-[#D64933] hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-16 py-4 rounded-full text-lg font-medium transition-colors flex items-center gap-2"
+            className="bg-[#D64933] hover:bg-orange-600 cursor-pointer disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-16 py-4 rounded-full text-lg font-medium transition-colors flex items-center gap-2"
           >
             {saving && (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
