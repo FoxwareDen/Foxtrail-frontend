@@ -26,7 +26,7 @@ const JobPreferences: React.FC = () => {
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState('Entry level');
   const [jobTitle, setJobTitle] = useState('');
-  
+
   // Database values
   const [uniqueValues, setUniqueValues] = useState<UniqueValues>({
     locations: [],
@@ -51,7 +51,7 @@ const JobPreferences: React.FC = () => {
   const workModes = ['Remote', 'Hybrid', 'On-Site'];
   const jobTypes = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance', 'Commission'];
   const experienceLevels = ['Entry level', 'Mid level', 'Senior level'];
-  
+
   const navigate = useNavigate();
 
   // Check authentication first
@@ -59,17 +59,17 @@ const JobPreferences: React.FC = () => {
     const checkAuth = async () => {
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        
+
         if (authError) {
           throw new Error('Authentication error: ' + authError.message);
         }
-        
+
         if (!user) {
           setError('You must be logged in to access job preferences');
           setLoading(false);
           return;
         }
-        
+
         setUser(user);
         fetchData(user.id);
       } catch (err) {
@@ -175,16 +175,16 @@ const JobPreferences: React.FC = () => {
   }, [successMessage]);
 
   const toggleWorkMode = (mode: string) => {
-    setSelectedWorkModes(prev => 
-      prev.includes(mode) 
+    setSelectedWorkModes(prev =>
+      prev.includes(mode)
         ? prev.filter(m => m !== mode)
         : [...prev, mode]
     );
   };
 
   const toggleJobType = (type: string) => {
-    setSelectedJobTypes(prev => 
-      prev.includes(type) 
+    setSelectedJobTypes(prev =>
+      prev.includes(type)
         ? prev.filter(t => t !== type)
         : [...prev, type]
     );
@@ -207,7 +207,7 @@ const JobPreferences: React.FC = () => {
         work_modes: selectedWorkModes,
         job_types: selectedJobTypes,
         experience_level: experienceLevel,
-        job_titles: [jobTitle], // Store as array with single element
+        job_titles: jobTitle, // Store as array with single element
         updated_at: new Date().toISOString()
       };
 
@@ -237,7 +237,7 @@ const JobPreferences: React.FC = () => {
 
       console.log('Job preferences saved successfully:', result);
       setSuccessMessage('Your job preferences have been updated!');
-      
+
     } catch (err) {
       console.error('Error saving job preferences:', err);
       setError(err instanceof Error ? err.message : 'Failed to save job preferences');
@@ -267,7 +267,7 @@ const JobPreferences: React.FC = () => {
         <div className="text-center">
           <div className="text-red-500 text-xl mb-4">Authentication Required</div>
           <p className="mb-6">{error}</p>
-          <button 
+          <button
             onClick={() => navigate('/login')}
             className="bg-[#D64933] hover:bg-orange-600 text-white px-6 py-2 rounded-full"
           >
@@ -283,15 +283,15 @@ const JobPreferences: React.FC = () => {
       <div className="max-w-sm mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <div 
+          <div
             className="text-[#D64933] text-2xl cursor-pointer hover:text-orange-400"
             onClick={handleBack}
           >
             ←
           </div>
-            <div className='sm:flex items-center space-x-4 mb-5'>
-              <img src={logoTextImage} alt="LogoText" className= "w-40 h-10 py-2 px-4 ml-6 mt-4"></img>
-            </div>
+          <div className='sm:flex items-center space-x-4 mb-5'>
+            <img src={logoTextImage} alt="LogoText" className="w-40 h-10 py-2 px-4 ml-6 mt-4"></img>
+          </div>
         </div>
 
         {/* Success Message */}
@@ -315,7 +315,7 @@ const JobPreferences: React.FC = () => {
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4">Location</h2>
           <div className="relative">
-            <select 
+            <select
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className="w-full bg-transparent border border-slate-500 rounded-lg px-4 py-3 text-white appearance-none cursor-pointer hover:bg-slate-600 transition-colors"
@@ -346,11 +346,10 @@ const JobPreferences: React.FC = () => {
               <button
                 key={mode}
                 onClick={() => toggleWorkMode(mode)}
-                className={`px-6 py-2 rounded-full border-2 cursor-pointer transition-colors ${
-                  selectedWorkModes.includes(mode)
-                    ? 'border-[#D64933] bg-[#D64933] text-white'
-                    : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10'
-                }`}
+                className={`px-6 py-2 rounded-full border-2 cursor-pointer transition-colors ${selectedWorkModes.includes(mode)
+                  ? 'border-[#D64933] bg-[#D64933] text-white'
+                  : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10'
+                  }`}
               >
                 {mode}
               </button>
@@ -367,11 +366,10 @@ const JobPreferences: React.FC = () => {
                 <button
                   key={type}
                   onClick={() => toggleJobType(type)}
-                  className={`px-6 py-2 rounded-full cursor-pointer border-2 transition-colors ${
-                    selectedJobTypes.includes(type)
-                      ? 'border-[#D64933] bg-[#D64933] text-white'
-                      : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10'
-                  }`}
+                  className={`px-6 py-2 rounded-full cursor-pointer border-2 transition-colors ${selectedJobTypes.includes(type)
+                    ? 'border-[#D64933] bg-[#D64933] text-white'
+                    : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10'
+                    }`}
                 >
                   {type}
                 </button>
@@ -382,11 +380,10 @@ const JobPreferences: React.FC = () => {
                 <button
                   key={type}
                   onClick={() => toggleJobType(type)}
-                  className={`px-6 py-2 rounded-full cursor-pointer border-2 transition-colors ${
-                    selectedJobTypes.includes(type)
-                      ? 'border-[#D64933] bg-[#D64933] text-white'
-                      : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10'
-                  }`}
+                  className={`px-6 py-2 rounded-full cursor-pointer border-2 transition-colors ${selectedJobTypes.includes(type)
+                    ? 'border-[#D64933] bg-[#D64933] text-white'
+                    : 'border-[#D64933] text-white bg-transparent hover:bg-[#D64933]/10'
+                    }`}
                 >
                   {type}
                 </button>
@@ -403,11 +400,10 @@ const JobPreferences: React.FC = () => {
               <div key={level} className="flex items-center">
                 <button
                   onClick={() => setExperienceLevel(level)}
-                  className={`w-6 h-6 border-2 rounded-full mr-2 transition-colors ${
-                    experienceLevel === level
-                      ? 'border-[#D64933] bg-[#D64933]'
-                      : 'border-white bg-transparent hover:border-[#D64933]'
-                  }`}
+                  className={`w-6 h-6 border-2 rounded-full mr-2 transition-colors ${experienceLevel === level
+                    ? 'border-[#D64933] bg-[#D64933]'
+                    : 'border-white bg-transparent hover:border-[#D64933]'
+                    }`}
                 />
                 <span className="cursor-pointer" onClick={() => setExperienceLevel(level)}>
                   {level}
@@ -421,7 +417,7 @@ const JobPreferences: React.FC = () => {
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4">Job title</h2>
           <div className="relative">
-            <select 
+            <select
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
               className="w-full bg-transparent border border-slate-500 rounded-lg px-4 py-3 text-white appearance-none cursor-pointer hover:bg-slate-600 transition-colors"
@@ -446,7 +442,7 @@ const JobPreferences: React.FC = () => {
 
         {/* Save/Update Button */}
         <div className="flex justify-center">
-          <button 
+          <button
             onClick={handleSave}
             disabled={!location || !city || !jobTitle || saving}
             className="bg-[#D64933] hover:bg-orange-600 cursor-pointer disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-16 py-4 rounded-full text-lg font-medium transition-colors flex items-center gap-2"
