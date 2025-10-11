@@ -6,7 +6,7 @@ import { executeQuery } from "./database";
 
 async function create_notification_table() {
     try {
-        const res = await executeQuery(async (db) => {
+        await executeQuery(async (db) => {
             return await db.execute(
                 "CREATE TABLE IF NOT EXISTS notification (id INTEGER PRIMARY KEY AUTOINCREMENT, state TEXT);"
             );

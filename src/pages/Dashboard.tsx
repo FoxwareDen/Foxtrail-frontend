@@ -13,7 +13,10 @@ const Dashboard: React.FC = () => {
   const handleJobPreferences = () => {
     navigate("/job-preferences")
   }
-
+ 
+  const handleUserPrefJobListing = () =>{
+    navigate("/user-job-pref")
+  }
   const handleExploreNewJobs = () => {
     navigate("/job-listings")
   }
@@ -194,6 +197,29 @@ const Dashboard: React.FC = () => {
                 <h3 className="text-lg font-semibold" style={{ color: '#eee5e9' }}>Browse Jobs</h3>
               </div>
               <p style={{ color: '#7c7c7c' }}>Discover new opportunities</p>
+            </div>
+                        <div 
+              className="rounded-lg p-6 transition-all duration-200 cursor-pointer hover:scale-105"
+              style={{ 
+                backgroundColor: '#353b47',
+                boxShadow: '0 4px 6px -1px rgba(214, 73, 51, 0.1)'
+              }}
+              onClick={handleUserPrefJobListing}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#3f4651';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#353b47';
+              }}
+            >
+              <div className="flex items-center mb-2">
+                <div 
+                  className="w-3 h-3 rounded-full mr-3"
+                  style={{ backgroundColor: '#D64933' }}
+                ></div>
+                <h3 className="text-lg font-semibold" style={{ color: '#eee5e9' }}>Browse your prefered Jobs</h3>
+              </div>
+              <p style={{ color: '#7c7c7c' }}>Explore prefered Jobs</p>
             </div>
           </div>
         </div>

@@ -1152,7 +1152,7 @@ dependencies = [
 
 [[package]]
 name = "foxtrail"
-version = "0.1.0"
+version = "1.5.0"
 dependencies = [
  "serde_json",
  "tauri",
@@ -4710,8 +4710,8 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-foxtrail-worker"
-version = "0.4.0"
-source = "git+https://github.com/fox5352/tauri-plugin-foxtrail-worker-api.git#ceddfb49de07e6c374aba178e7688be836db6e62"
+version = "0.5.0"
+source = "git+https://github.com/fox5352/tauri-plugin-foxtrail-worker-api.git#927c212eda3ba451fa327cb46affa0fdcc15babb"
 dependencies = [
  "serde",
  "tauri",
@@ -5848,7 +5848,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.1",
 ]
 
 [[package]]

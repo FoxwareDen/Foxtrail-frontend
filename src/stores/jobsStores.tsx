@@ -10,6 +10,7 @@ interface JobsState {
 
   // Actions
   fetchJobs: (page?: number, limit?: number) => Promise<void>
+  fetchUserPreferredJobs: (page?: number, limit?: number) => Promise<void>
   fetchJobById: (id: string) => Promise<void>
   searchJobs: (query: string) => Promise<void>
   filterByCategory: (category: string) => Promise<void>
@@ -48,6 +49,59 @@ export const useJobsStore = create<JobsState>((set, _get) => ({
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to fetch jobs',
+        loading: false,
+      })
+    }
+  },
+
+  fetchUserPreferredJobs: async (page = 1, limit = 9) => {
+    set({ loading: true, error: null })
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      const start = (page - 1) * limit
+      const end = start + limit - 1
+
+      // First get job IDs from feed table
+      const { data: feedData, error: feedError, count } = await supabase
+        .from('feed')
+        .select('job_id', { count: 'exact' })
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .range(start, end)
+
+      if (feedError) throw feedError
+
+      if (!feedData || feedData.length === 0) {
+        set({
+          jobs: [],
+          totalJobs: count || 0,
+          loading: false,
+          error: null,
+        })
+        return
+      }
+
+      // Extract job IDs and fetch job details
+      const jobIds = feedData.map(item => item.job_id).filter(Boolean)
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select('*')
+        .in('id', jobIds)
+        .order('created_at', { ascending: false })
+
+      if (jobsError) throw jobsError
+
+      set({
+        jobs: jobsData || [],
+        totalJobs: count || 0,
+        loading: false,
+        error: null,
+      })
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to fetch preferred jobs',
         loading: false,
       })
     }
