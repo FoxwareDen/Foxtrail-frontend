@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { supabase } from "./lib/supabaseClient";
 import { start_service_notification } from "./lib/notification";
 import { getPlatform } from "./lib/utils";
+import  AuthCallback  from "./components/AuthCallback"
 
 function App() {
 
@@ -83,6 +84,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
