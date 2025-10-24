@@ -346,3 +346,43 @@ button {
     background-size: 30px 30px;
   }
 }
+
+/* Add to your App.css file */
+
+/* Subtle Grid Background for All Pages */
+.app-background {
+  background: #2b303a;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.app-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(146, 220, 229, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(146, 220, 229, 0.02) 1px, transparent 1px);
+  background-size: 80px 80px;
+  animation: gridMove 40s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes gridMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 80px 80px;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .app-background::before {
+    background-size: 40px 40px;
+  }
+}

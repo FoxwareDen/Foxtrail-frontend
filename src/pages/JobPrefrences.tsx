@@ -279,7 +279,7 @@ const JobPreferences: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#2B303A] text-white min-h-screen p-6">
+    <div className="bg-[#2B303A] text-white min-h-screen p-6 app-background">
       <div className="max-w-sm mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">

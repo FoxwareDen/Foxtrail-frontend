@@ -31,7 +31,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#2b303a' }}>
+    <div className="min-h-screen app-background" style={{ backgroundColor: '#2b303a' }}>
       <nav className='border-b-2 border-[#D64933]' style={{ backgroundColor: '#2b303a' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
