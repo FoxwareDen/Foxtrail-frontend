@@ -146,3 +146,203 @@ button {
     background-color: #0f0f0f69;
   }
 } */
+/* Add this to your App.css file */
+
+/* Animated Gradient Background */
+/* Add this to your App.css file */
+
+/* Login Page Specific Styles */
+
+button {
+  cursor: pointer;
+}
+
+.login-page {
+  /* Animated Gradient Background */
+  background: linear-gradient(-45deg, #2b303a, #1a1f29, #3a3f51, #4a5568);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gradient Animation */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Floating Geometric Shapes */
+.login-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(146, 220, 229, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(146, 220, 229, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(146, 220, 229, 0.05) 0%, transparent 50%);
+  animation: float 20s ease-in-out infinite;
+}
+
+/* Subtle Grid Pattern */
+.login-page::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(146, 220, 229, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(146, 220, 229, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridMove 30s linear infinite;
+}
+
+/* Floating Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-20px) rotate(120deg);
+  }
+  66% {
+    transform: translateY(20px) rotate(240deg);
+  }
+}
+
+/* Grid Movement Animation */
+@keyframes gridMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+
+/* Login Page Particles */
+.login-particle {
+  position: absolute;
+  background: rgba(146, 220, 229, 0.1);
+  border-radius: 50%;
+  animation: particleFloat 8s ease-in-out infinite;
+}
+
+.login-particle:nth-child(1) {
+  width: 4px;
+  height: 4px;
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.login-particle:nth-child(2) {
+  width: 6px;
+  height: 6px;
+  top: 60%;
+  left: 80%;
+  animation-delay: -2s;
+}
+
+.login-particle:nth-child(3) {
+  width: 3px;
+  height: 3px;
+  top: 80%;
+  left: 20%;
+  animation-delay: -4s;
+}
+
+.login-particle:nth-child(4) {
+  width: 5px;
+  height: 5px;
+  top: 30%;
+  left: 70%;
+  animation-delay: -6s;
+}
+
+@keyframes particleFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-40px) scale(1.2);
+    opacity: 0.6;
+  }
+}
+
+/* Glass Morphism Effect for Login Page Content */
+.login-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Enhanced Button Effects - Login Page Only */
+.login-page button {
+  backdrop-filter: blur(10px);
+  background: rgba(146, 220, 229, 0.1) !important;
+  border: 2px solid rgba(146, 220, 229, 0.3) !important;
+  transition: all 0.3s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-page button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(146, 220, 229, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.login-page button:hover::before {
+  left: 100%;
+}
+
+.login-page button:hover {
+  border-color: #92dce5 !important;
+  box-shadow: 0 0 20px rgba(146, 220, 229, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Logo Enhancement - Login Page Only */
+.login-page img[alt="Logo"] {
+  filter: drop-shadow(0 0 20px rgba(146, 220, 229, 0.3));
+  animation: logoGlow 4s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(146, 220, 229, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 30px rgba(146, 220, 229, 0.5));
+  }
+}
+
+/* Text Enhancement - Login Page Only */
+.login-page .text-white {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .login-page::after {
+    background-size: 30px 30px;
+  }
+}
