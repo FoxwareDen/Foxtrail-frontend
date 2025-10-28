@@ -1,11 +1,11 @@
 import React, {useState, useEffect} from 'react';
 import logoTextImage from "../img/FoxTrail.png";
-import logoImage from "../img/logo.png";
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { platform } from '@tauri-apps/plugin-os';
 import { scan, Format, requestPermissions as requestCameraPermissions } from '@tauri-apps/plugin-barcode-scanner';
 import { supabase } from '../lib/supabaseClient';
+import fox from "../img/fox.svg";
 
 const LoginPage: React.FC = () => {
   const { user, signInWithGoogle, signInWithLinkedIn } = useAuth();
@@ -208,7 +208,13 @@ const LoginPage: React.FC = () => {
   }
   
   return (
-    <div className="min-h-screen bg-[#2b303a] flex flex-col justify-between">
+    <div className="min-h-screen  login-page bg-[#2b303a] flex flex-col justify-between">
+
+      <div className="login-particle"></div>
+      <div className="login-particle"></div>
+      <div className="login-particle"></div>
+      <div className="login-particle"></div>
+
       {/* Header with Logo */}
       <div className="flex-1 flex items-start">
         <img src={logoTextImage} alt="LogoText" className= "w-40 h-12 py-2 px-4 ml-6 mt-4"></img>
@@ -217,7 +223,7 @@ const LoginPage: React.FC = () => {
       {/* Center Content */}
       <div className="flex-1 flex flex-col items-center justify-center space-y-8 px-4">
         {/* Fox Logo */}
-        <img src={logoImage} alt="Logo" className='w-20 h-20 rounded-full border-none mt-12'/>
+        <img src={fox} alt="Logo" className='w-40 h-40 border-none mt-12'/>
         
         {/* Tagline */}
         <div className="text-center mb-8">
@@ -288,17 +294,10 @@ const LoginPage: React.FC = () => {
               </span>
             </button>
 
-            {/* Or Divider */}
-            <div className="flex items-center w-full my-6">
-              <div className="flex-1 h-px bg-[#d64933]"></div>
-              <span className="px-2 text-[#d64933] font-medium text-lg">or login with</span>
-              <div className="flex-1 h-px bg-[#d64933]"></div>
-            </div>
-
           </div>
         ) : (
           // Desktop: Regular Login Buttons
-          <div className="w-full max-w-sm space-y-4">
+          <div className="w-full max-w-sm space-y-4 mb-4">
             {/* Google Login Button */}
             <button 
               onClick={handleGoogleSignIn}
@@ -326,25 +325,9 @@ const LoginPage: React.FC = () => {
                 {loading === 'linkedIn' ? 'Opening...' : 'Continue with LinkedIn'}
               </span>
             </button>
-
-            {/* Or Divider */}
-            <div className="flex items-center w-full my-6">
-              <div className="flex-1 h-px bg-[#d64933]"></div>
-              <span className="px-2 text-[#d64933] font-medium text-lg">or</span>
-              <div className="flex-1 h-px bg-[#d64933]"></div>
-            </div>
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      {!isMobile && (
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <button className="text-5xl font-bold text-[#d64933] hover:text-orange-400 transition-colors pb-10">
-            Log in
-          </button>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useEffect,useState } from 'react'
 import { Job } from '../lib/supabaseClient'
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { platform } from '@tauri-apps/plugin-os';
 
 interface JobModalProps {
   job: Job
@@ -9,6 +10,21 @@ interface JobModalProps {
 }
 
 export const JobModal: React.FC<JobModalProps> = ({ job, onClose, onApply }) => {
+   const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkPlatform = async () => {
+      try {
+        const platformName = await platform(); 
+        setIsMobile(platformName === 'android' || platformName === 'ios');
+      } catch (error) {
+        console.error('Platform detection failed:', error);
+        setIsMobile(false);
+      }
+    };
+    checkPlatform();
+  }, []);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -32,22 +48,34 @@ export const JobModal: React.FC<JobModalProps> = ({ job, onClose, onApply }) => 
     if (e.target === e.currentTarget) onClose()
   }
 
-  const handleApply = async (e: React.MouseEvent) => {
+ const handleApply = async (e: React.MouseEvent) => {
     e.preventDefault()
     
     if (job.redirect_url) {
-      // Open in new tab/window for better user experience
-      await openUrl(job.redirect_url)
-      
-      // Also call the onApply callback for tracking/analytics
-      onApply(job)
-      
-      // Optionally close the modal after a short delay
-      setTimeout(() => {
-        onClose()
-      }, 500)
+      try {    
+        if (isMobile) {
+          // Open in Tauri desktop app
+          await openUrl(job.redirect_url)
+        } else {
+          // Open in web browser (mobile or web version)
+          window.open(job.redirect_url, '_blank', 'noopener,noreferrer')
+        }
+        
+        // Also call the onApply callback for tracking/analytics
+        onApply(job)
+        
+        // Optionally close the modal after a short delay
+        setTimeout(() => {
+          onClose()
+        }, 500)
+      } catch (error) {
+        console.error('Error opening URL:', error)
+        // Fallback to window.open if anything fails
+        window.open(job.redirect_url, '_blank', 'noopener,noreferrer')
+      }
     }
   }
+
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto"
